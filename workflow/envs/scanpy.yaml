@@ -1,0 +1,19 @@
+name: scanpy_pipeline
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.10
+  - scanpy>=1.9
+  - anndata>=0.9
+  - pandas
+  - numpy
+  - plotly
+  - pyyaml
+  - pip
+  - pip:
+      - scrublet
+      - scvi-tools
+      - kaleido        # required for plotly static image export (PDF)
+      - reportlab      # required for assembling figures into PDF

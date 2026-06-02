@@ -1,0 +1,41 @@
+# Snakemake Pipeline — scRNA-seq
+
+# Run (dry-run first):
+#   snakemake --cores 4 --use-conda -n
+#   snakemake --cores 4 --use-conda
+# Run a single sample:
+#   snakemake results/qc/pre_KS2103T1_1_qc.html --cores 1 --use-conda
+
+import pandas as pd
+import os
+
+# Point to config file :). This creates a dictionary 
+configfile: "config/config.yaml"
+
+# Samples from metadata (first column, regardless of name column) 
+METADATA   = pd.read_csv(config["input"]["metadata"])
+# Gets sample names from metadata first column
+SAMPLES    = METADATA.iloc[:, 0].astype(str).tolist() # This list is call later in the general rule
+DATA_DIR   = config["input"]["data_dir"]
+H5_FILE    = config["input"]["h5_filename"]
+QC_DIR     = config["output"]["qc_dir"]
+FILT_DIR   = config["output"]["filtered_dir"]
+
+def sample_h5(wildcards):
+    """Get .h5 path for a given sample wildcard."""
+    return os.path.join(DATA_DIR, f"{wildcards.sample}_features", H5_FILE)
+    # This gives as a results something like: 
+    # "/mnt/filestorage/groups/Eduardo Villablanca Group (68b42d4e)/Datasets_to_explore/scRNAseq/KKIK_scRNAseq/matrices/<sample>/filtered_feature_bc_matrix.h5"
+
+# Include rules 
+include: "rules/qc_pre.smk"
+include: "rules/filtering.smk"
+include: "rules/qc_post.smk"
+
+
+# Target rule 
+rule all:
+    input:
+        expand(os.path.join(QC_DIR,  "pre_{sample}_qc.html"),   sample=SAMPLES),
+        expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"), sample=SAMPLES),
+        expand(os.path.join(QC_DIR,  "post_{sample}_qc.html"),  sample=SAMPLES),
