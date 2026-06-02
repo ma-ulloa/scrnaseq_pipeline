@@ -22,11 +22,11 @@ rule qc_report_post:
     shell:
         """
         python workflow/scripts/01_qc_stats_report.py \
-            --input     {input.h5ad}       \
-            --metadata  {input.metadata}   \
-            --config    {input.cfg}        \
-            --sample_id {params.sample_id} \
-            --stage     {params.stage}     \
-            --output    {output.html}      \
+            --input     "{input.h5ad}"       \
+            --metadata  "{input.metadata}"   \
+            --config    "{input.cfg}"        \
+            --sample_id "{params.sample_id}" \
+            --stage     "{params.stage}"     \
+            --output    "{output.html}"      \
         > {log} 2>&1
         """

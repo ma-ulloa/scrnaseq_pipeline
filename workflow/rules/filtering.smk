@@ -20,10 +20,10 @@ rule filter_cells:
     shell:
         """
         python workflow/scripts/02_filtering.py \
-            --input     {input.h5}         \
-            --metadata  {input.metadata}   \
-            --config    {input.cfg}        \
-            --sample_id {params.sample_id} \
-            --output    {output.h5ad}      \
+            --input     "{input.h5}"         \
+            --metadata  "{input.metadata}"   \
+            --config    "{input.cfg}"        \
+            --sample_id "{params.sample_id}" \
+            --output    "{output.h5ad}"      \
         > {log} 2>&1
         """
