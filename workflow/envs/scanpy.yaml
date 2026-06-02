@@ -4,16 +4,9 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - python=3.10
-  - scanpy>=1.9
-  - anndata>=0.9
+  - python=3.14
+  - scanpy
+  - matplotlib  # Handles the core plotting canvas and PDF export
+  - seaborn     # Handles the elegant styling and distributions
   - pandas
-  - numpy
-  - plotly
-  - pyyaml
-  - pip
-  - pip:
-      - scrublet
-      - scvi-tools
-      - kaleido        # required for plotly static image export (PDF)
-      - reportlab      # required for assembling figures into PDF
+  - reportlab   # Handles assembling your multi-page PDF story

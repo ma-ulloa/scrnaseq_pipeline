@@ -6,7 +6,7 @@
 
 rule qc_report_pre:
     input:
-        h5       = sample_h5,
+        h5       = sample_h5, # helper function in Snakemake file
         metadata = config["input"]["metadata"],
         cfg      = "config/config.yaml",
     output:
@@ -20,12 +20,12 @@ rule qc_report_pre:
         "logs/qc/pre_{sample}.log"
     shell:
         """
-        python workflow/scripts/01_qc_report.py \
-            --input     {input.h5}         \
+        python workflow/scripts/01_qc_stats_report.py \
+            --input     "{input.h5}"         \
             --metadata  {input.metadata}   \
-            --config    {input.cfg}        \
+            --cfg    "{input.cfg}"        \
             --sample_id {params.sample_id} \
-            --stage     {params.stage}     \
-            --output    {output.html}      \
+            --stage     "{params.stage}"     \
+            --output    "{output.html}"      \
         > {log} 2>&1
         """

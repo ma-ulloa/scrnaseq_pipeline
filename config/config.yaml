@@ -1,45 +1,28 @@
-# Pipeline Configuration File
+# Pipeline Configuration
 
+#  INPUT 
 input:
-  # Root directory containing one subfolder per sample
-  # Note AlE: I have to change this so is more generalizable :)
-  # Expected structure: <data_dir>/<sample_id>_features/filtered_feature_bc_matrix.h5
-  data_dir: "/mnt/filestorage/groups/Eduardo Villablanca Group (68b42d4e)/Datasets_to_explore/scRNAseq/KKIK_scRNAseq/matrices"
+  # Sample sheet mapping sample IDs to their paths
+  sample_sheet: "config/samples.csv"
 
-  # Which .h5 file to use inside each sample folder 
-  h5_filename: "filtered_feature_bc_matrix.h5"
-
-  # Metadata CSV
+  # Experimental metadata (conditions, batches, etc.) for downstream analysis
   metadata: "config/metadata.csv"
 
-  # Technology
-  technology: "10x"
-
+#  OUTPUT
 output:
-  base_dir: "results/"
-  qc_dir: "results/qc/"
-  filtered_dir: "results/filtered/"
+  qc_dir:         "results/qc/"
+  filtered_dir:   "results/filtered/"
   integrated_dir: "results/integrated/"
 
+#  QC Thresholds 
 qc_thresholds:
-  min_genes: 200
-  max_genes: 6000
-  min_counts: 500
-  max_pct_mt: 20
-  min_cells_per_gene: 3
+  min_genes:          200   
+  max_genes:          6000  
+  min_counts:         500   
+  max_pct_mt:         20    
+  min_cells_per_gene: 3     
 
+#  Doublet Detection 
 doublets:
-  run_scrublet: true
+  run_scrublet:          true
   expected_doublet_rate: 0.05
-
-integration:
-  batch_key: "sample_id"
-  categorical_covariates:
-    - patient
-    - fraction
-  n_top_genes: 3000
-  n_latent: 30
-  n_layers: 2
-
-clustering:
-  leiden_resolution: 0.5

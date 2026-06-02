@@ -128,10 +128,3 @@ def attach_metadata(adata: sc.AnnData, metadata_path: str, sample_id: str) -> sc
     return adata
 
 
-def get_sample_ids(metadata_path: str) -> list:
-    """
-    Return all sample IDs from the first column of the metadata CSV.
-    Useful for Snakemake wildcard expansion.
-    """
-    meta = pd.read_csv(metadata_path)
-    return meta.iloc[:, 0].astype(str).tolist()

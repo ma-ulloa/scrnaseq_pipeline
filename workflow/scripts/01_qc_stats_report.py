@@ -36,7 +36,7 @@ import yaml
 sys.path.insert(0, os.path.dirname(__file__))
 from utils.io    import load_data, attach_metadata
 from utils.report import build_html_report, export_pdf
-from qc_plots import (
+from utils.qc_plots import (
     fig_summary_table,
     fig_violin,
     fig_scatter,
@@ -59,7 +59,7 @@ def parse_args():
     p = argparse.ArgumentParser(description="Generate scRNA-seq QC report")
     p.add_argument("--input",     required=True, help="Count matrix (any supported format)")
     p.add_argument("--metadata",  required=True, help="Metadata CSV (first column = sample ID)")
-    p.add_argument("--config",    required=True, help="config.yaml")
+    p.add_argument("--cfg",       required=True, help="config.yaml")
     p.add_argument("--sample_id", required=True, help="Sample ID to look up in metadata")
     p.add_argument("--stage",     required=True, choices=["pre", "post"],
                    help="'pre' = before filtering, 'post' = after filtering")
@@ -94,12 +94,9 @@ def main():
     args = parse_args()
 
     # Config
-    with open(args.config) as f:
+    with open(args.cfg) as f:
         config = yaml.safe_load(f)
     thresholds = config["qc_thresholds"]
-
-    # Infer technology label from config (informational only — loading is auto-detected)
-    technology = config.get("input", {}).get("technology", "unknown")
 
     # Load + annotate
     adata = load_data(args.input)
@@ -123,7 +120,6 @@ def main():
         sample_id=args.sample_id,
         stage=args.stage,
         thresholds=thresholds,
-        technology=technology,
         n_cells=adata.n_obs,
     )
     with open(args.output, "w") as f:
