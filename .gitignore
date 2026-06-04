@@ -239,3 +239,4 @@ results/
 # Local configurations or scratch directories
 .ipynb_checkpoints/
 tmp/
+data/*
