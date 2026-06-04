@@ -32,6 +32,6 @@ include: "rules/qc_post.smk"
 # Expan is used so that all SAMPLES are run through the command
 rule all:
     input:
-        expand(os.path.join(QC_DIR,  "pre_{sample}_qc.html"),   sample=SAMPLES),
-        expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"), sample=SAMPLES),
+        expand(os.path.join(QC_DIR,  "pre_{sample}_qc.html"),   sample=SAMPLES),ß
+        expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"), sample=SAMPLES),
         expand(os.path.join(QC_DIR,  "post_{sample}_qc.html"),  sample=SAMPLES)

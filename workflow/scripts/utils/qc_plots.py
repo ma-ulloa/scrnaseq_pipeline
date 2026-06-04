@@ -55,6 +55,7 @@ def fig_summary_table(adata: sc.AnnData, sample_id: str, thresholds: dict) -> pl
 
 # Violin Plots
 def fig_violin(adata: sc.AnnData, sample_id: str) -> plt.Figure:
+    # TO DO: Change scale
     metrics = [
         ("n_genes_by_counts", "N Genes"),
         ("total_counts",      "Total Counts (UMIs)"),
