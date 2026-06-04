@@ -1,0 +1,37 @@
+# Snakemake Pipeline — scRNA-seq
+
+import pandas as pd
+import os
+
+# Point to config file
+configfile: "config/config.yaml"
+
+# Load the dedicated sample sheet (auto-detects CSV or TSV)
+SAMPLE_SHEET = pd.read_csv(config["input"]["sample_sheet"], sep=None, engine="python")
+
+# Map Column 1 (sample_id) to Column 2 (file_path)
+SAMPLE_PATHS = dict(zip(SAMPLE_SHEET.iloc[:, 0].astype(str), SAMPLE_SHEET.iloc[:, 1].astype(str)))
+
+# Extract sample names for Snakemake wildcards
+SAMPLES    = list(SAMPLE_PATHS.keys())
+QC_DIR     = config["output"]["qc_dir"]
+FILT_DIR   = config["output"]["filtered_dir"]
+
+# Helper function to resolve the h5 path per sample
+def sample_h5(wildcards):
+    return SAMPLE_PATHS[wildcards.sample]
+
+
+# Include rules 
+include: "rules/qc_pre.smk"
+include: "rules/filtering.smk"
+include: "rules/qc_post.smk"
+
+
+# Target rule 
+# Expan is used so that all SAMPLES are run through the command
+rule all:
+    input:
+        expand(os.path.join(QC_DIR,  "pre_{sample}_qc.html"),   sample=SAMPLES),ß
+        expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"), sample=SAMPLES),
+        expand(os.path.join(QC_DIR,  "post_{sample}_qc.html"),  sample=SAMPLES)

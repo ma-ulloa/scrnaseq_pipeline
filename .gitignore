@@ -216,4 +216,27 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Specific for this pipeline
+
+# Snakemake internal environments, metadata, and locks
+.snakemake/
+
+# Runtime logging outputs
+logs/
+
+# Pipeline data results (keeps massive datasets out of Git)
+results/
+
+# High-throughput sequencing raw matrices and binaries
+*.h5
+*.fastq
+*.fastq.gz
+*.bam
+*.sam
+*.bai
+
+# Local configurations or scratch directories
+.ipynb_checkpoints/
+tmp/
 data/*

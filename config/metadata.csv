@@ -1,0 +1,13 @@
+Sampleid,Patient,response,timepoint,inflammation,cells,sex
+KS2103T1_1,KS2103,responder,T1,inflammed,epi_stroma,male
+KS2103T1_2,KS2103,responder,T1,inflammed,immune,male
+KS2103T2_1_1,KS2103,responder,T2,inflammed,epi_stroma,male
+KS2103T2_1_2,KS2103,responder,T2,inflammed,immune,male
+KS2103T2_2_1,KS2103,responder,T2,inflammed,epi_stroma,male
+KS2103T2_2_2,KS2103,responder,T2,inflammed,immune,male
+KS2103T3_1,KS2103,responder,T3,inflammed,epi_stroma,male
+KS2103T3_2,KS2103,responder,T3,inflammed,immune,male
+KS2103T4_1,KS2103,responder,T4,inflammed,epi_stroma,male
+KS2103T4_2,KS2103,responder,T4,inflammed,immune,male
+KS2204T1_1,KS2204,control,T1,non-inflammed,epi_stroma,female
+KS2204T1_2,KS2204,control,T1,non-inflammed,immune,female
