@@ -17,6 +17,7 @@ SAMPLES    = list(SAMPLE_PATHS.keys())
 QC_DIR     = config["output"]["qc_dir"]
 FILT_DIR   = config["output"]["filtered_dir"]
 SOUPX_DIR  = config["output"]["soupx_dir"]
+MERGE_DIR  = config["output"]["merge_dir"]
 
 # Helper function to resolve the h5 path per sample
 def sample_h5(wildcards):
@@ -28,6 +29,7 @@ include: "rules/qc_pre.smk"
 include: "rules/filtering.smk"
 include: "rules/qc_post.smk"
 include: "rules/soupx.smk"
+include: "rules/merge.smk"
 
 # Target rule 
 # Expan is used so that all SAMPLES are run through the command
@@ -37,3 +39,5 @@ rule all:
         expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"), sample=SAMPLES),
         expand(os.path.join(QC_DIR,  "post_{sample}_qc.html"),  sample=SAMPLES),
         expand(os.path.join(SOUPX_DIR,  "{sample}.h5ad"),  sample=SAMPLES),
+        os.path.join(MERGE_DIR,  "sc.h5ad")
+
