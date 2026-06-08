@@ -82,10 +82,19 @@ def compute_qc_metrics(adata: sc.AnnData) -> sc.AnnData:
 
     sc.pp.calculate_qc_metrics(
         adata, qc_vars=["mt", "ribo"],
-        percent_top=None, log1p=False, inplace=True,
+        percent_top=None, log1p=True, inplace=True,
     )
     print(f"[INFO] QC metrics computed. Cells: {adata.n_obs} | Genes: {adata.n_vars}")
     return adata
+
+
+# QC summary tables
+def save_qc_metrics(adata: sc.AnnData) -> sc.AnnData:
+    """
+    creates csv dataframe with general metrics 
+    """
+    data = 
+    metrics_df = pd.DataFrame(data)
 
 
 #  Main 
@@ -112,6 +121,10 @@ def main():
                             thresholds["min_genes"], thresholds["max_genes"]),
         fig_histogram_mt(adata, args.sample_id, thresholds["max_pct_mt"]),
     ]
+    
+    # Build qc metrics summary table
+
+
 
     # HTML
     os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
