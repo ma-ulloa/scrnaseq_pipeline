@@ -13,6 +13,7 @@ output:
   qc_dir:         "results/qc/"
   filtered_dir:   "results/filtered/"
   integrated_dir: "results/integrated/"
+  soupx_dir:      "results/01_soupx/files"
 
 #  QC Thresholds 
 qc_thresholds:

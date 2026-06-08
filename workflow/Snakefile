@@ -16,6 +16,7 @@ SAMPLE_PATHS = dict(zip(SAMPLE_SHEET.iloc[:, 0].astype(str), SAMPLE_SHEET.iloc[:
 SAMPLES    = list(SAMPLE_PATHS.keys())
 QC_DIR     = config["output"]["qc_dir"]
 FILT_DIR   = config["output"]["filtered_dir"]
+SOUPX_DIR  = config["output"]["soupx_dir"]
 
 # Helper function to resolve the h5 path per sample
 def sample_h5(wildcards):
@@ -34,4 +35,5 @@ rule all:
     input:
         expand(os.path.join(QC_DIR,  "pre_{sample}_qc.html"),   sample=SAMPLES),
         expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"), sample=SAMPLES),
-        expand(os.path.join(QC_DIR,  "post_{sample}_qc.html"),  sample=SAMPLES)
+        expand(os.path.join(QC_DIR,  "post_{sample}_qc.html"),  sample=SAMPLES),
+        expand(os.path.join(SOUPX_DIR,  "{sample}.h5ad"),  sample=SAMPLES),

@@ -16,7 +16,7 @@ rule soupx:
     input:
         filtered  = sample_h5,
         raw       = sample_raw_h5,
-        soupgenes = "scripts/utils/soupgenes.txt",
+        soupgenes = "workflow/scripts/utils/soupgenes.txt",
         metadata  = config["input"]["metadata"],
     output:
         h5ad = "results/01_soupx/files/{sample}.h5ad",
