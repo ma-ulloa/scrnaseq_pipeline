@@ -62,7 +62,7 @@ def main():
     adatas = []
     for path in args.inputs:
         print(f"[INFO] Loading {path}")
-        adata = load_data(path)
+        adata = sc.read_h5ad(path)
         print(f"[INFO]   {adata.n_obs:,} cells x {adata.n_vars:,} genes")
         adatas.append(adata)
 
