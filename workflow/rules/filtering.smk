@@ -1,12 +1,14 @@
 # Rule: filter_cells
 # Applies QC thresholds from config.yaml and saves filtered AnnData.
-# Input:  raw .h5 count matrix per sample
+# Input:  per-sample count matrix — SoupX-corrected .h5ad if
+#         config["soupx"]["use_soupx"] is true, otherwise the
+#         original raw/filtered .h5 matrix
 # Output: results/filtered/<sample>_filtered.h5ad
 # ============================================================
 
 rule filter_cells:
     input:
-        h5       = sample_h5,
+        h5       = qc_input,
         metadata = config["input"]["metadata"],
         cfg      = "config/config.yaml",
     output:
