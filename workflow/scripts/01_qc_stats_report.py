@@ -89,13 +89,30 @@ def compute_qc_metrics(adata: sc.AnnData) -> sc.AnnData:
 
 
 # QC summary tables
-def save_qc_metrics(adata: sc.AnnData) -> sc.AnnData:
-    """
-    creates csv dataframe with general metrics 
-    """
-    data = 
-    metrics_df = pd.DataFrame(data)
+import pandas as pd
+import scanpy as sc
 
+# QC summary tables
+def save_qc_metrics(adata: sc.AnnData) -> pd.DataFrame:
+    """
+    Extracts the computed QC metrics from adata.obs into a standalone pandas DataFrame.
+    """
+    # 1. Define the specific QC columns created by sc.pp.calculate_qc_metrics
+    qc_columns = [
+        "n_genes_by_counts",
+        "log1p_n_genes_by_counts",
+        "total_counts",
+        "log1p_total_counts",
+        "pct_counts_mt",
+        "pct_counts_ribo"
+    ]
+    
+    available_columns = [col for col in qc_columns if col in adata.obs.columns]
+    metrics_df = adata.obs[available_columns].copy()
+    metrics_df.insert(0, "cell_id", metrics_df.index)
+    
+    print(f"[INFO] Created QC DataFrame with shape: {metrics_df.shape}")
+    return metrics_df
 
 #  Main 
 
