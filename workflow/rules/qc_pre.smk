@@ -1,12 +1,14 @@
 # Rule: qc_report_pre
 # Generates a QC HTML + PDF report BEFORE filtering.
-# Input:  raw .h5 count matrix per sample
+# Input:  per-sample count matrix — SoupX-corrected .h5ad if
+#         config["soupx"]["use_soupx"] is true, otherwise the
+#         original raw/filtered .h5 matrix
 # Output: results/qc/pre_<sample>_qc.html
 # ============================================================
 
 rule qc_report_pre:
     input:
-        h5       = sample_h5, # helper function in Snakemake file
+        h5       = qc_input, # helper function in Snakemake file
         metadata = config["input"]["metadata"],
         cfg      = "config/config.yaml",
     output:

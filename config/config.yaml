@@ -13,6 +13,8 @@ output:
   qc_dir:         "results/qc/"
   filtered_dir:   "results/filtered/"
   integrated_dir: "results/integrated/"
+  soupx_dir:      "results/01_soupx/files"
+  merge_dir:      "results/03_merge_adatas/files"
 
 #  QC Thresholds 
 qc_thresholds:
@@ -26,3 +28,13 @@ qc_thresholds:
 doublets:
   run_scrublet:          true
   expected_doublet_rate: 0.05
+
+# union or intersection of genes when merging
+merge:
+  join: "union"
+
+# Ambient RNA correction
+# If true, QC and filtering use the SoupX-corrected .h5ad files as input.
+# If false, they use the original count matrices from the sample sheet.
+soupx:
+  use_soupx: false

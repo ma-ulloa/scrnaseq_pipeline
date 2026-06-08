@@ -16,22 +16,38 @@ SAMPLE_PATHS = dict(zip(SAMPLE_SHEET.iloc[:, 0].astype(str), SAMPLE_SHEET.iloc[:
 SAMPLES    = list(SAMPLE_PATHS.keys())
 QC_DIR     = config["output"]["qc_dir"]
 FILT_DIR   = config["output"]["filtered_dir"]
+SOUPX_DIR  = config["output"]["soupx_dir"]
+MERGE_DIR  = config["output"]["merge_dir"]
+USE_SOUPX  = config["soupx"]["use_soupx"]
 
 # Helper function to resolve the h5 path per sample
 def sample_h5(wildcards):
     return SAMPLE_PATHS[wildcards.sample]
+
+# Helper function to resolve the count matrix fed into QC/filtering:
+# the SoupX-corrected .h5ad if config["soupx"]["use_soupx"] is true,
+# otherwise the original sample matrix.
+def qc_input(wildcards):
+    if USE_SOUPX:
+        return os.path.join(SOUPX_DIR, f"{wildcards.sample}.h5ad")
+    else:
+        return sample_h5(wildcards)
 
 
 # Include rules 
 include: "rules/qc_pre.smk"
 include: "rules/filtering.smk"
 include: "rules/qc_post.smk"
-
+include: "rules/soupx.smk"
+include: "rules/merge.smk"
 
 # Target rule 
 # Expan is used so that all SAMPLES are run through the command
 rule all:
     input:
-        expand(os.path.join(QC_DIR,  "pre_{sample}_qc.html"),   sample=SAMPLES),ß
-        expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"), sample=SAMPLES),
-        expand(os.path.join(QC_DIR,  "post_{sample}_qc.html"),  sample=SAMPLES)
+        expand(os.path.join(QC_DIR,  "pre_{sample}_qc.html"),   sample=SAMPLES),
+        expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"), sample=SAMPLES),
+        expand(os.path.join(QC_DIR,  "post_{sample}_qc.html"),  sample=SAMPLES),
+        expand(os.path.join(SOUPX_DIR,  "{sample}.h5ad"),  sample=SAMPLES),
+        os.path.join(MERGE_DIR,  "sc.h5ad")
+
