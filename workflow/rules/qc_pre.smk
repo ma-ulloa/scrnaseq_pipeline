@@ -13,11 +13,13 @@ rule qc_report_pre:
         cfg      = "config/config.yaml",
     output:
         html = os.path.join(QC_DIR, "pre_{sample}_qc.html"),
+        pdf  = os.path.join(QC_DIR, "pre_{sample}_qc.pdf"),
+        csv  = os.path.join(QC_DIR, "pre_{sample}_cell_qc_metrics.csv")
     params:
         sample_id = "{sample}",
         stage     = "pre",
     conda:
-        "../envs/scanpy.yaml"
+        "/srv/data/users/shared_conda_alejandra_martin/scanpy-env"
     log:
         "logs/qc/pre_{sample}.log"
     shell:

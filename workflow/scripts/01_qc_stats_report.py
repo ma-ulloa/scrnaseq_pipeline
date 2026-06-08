@@ -9,12 +9,12 @@ an HTML + PDF report. Designed to run pre- and post-filtering.
 
 Usage:
     python 01_qc_report.py \
-        --input     data/raw/KS2103T1_1.h5 \
+        --input     data/raw/sample.h5 \
         --metadata  config/metadata.csv \
         --config    config/config.yaml \
-        --sample_id KS2103T1_1 \
+        --sample_id sample \
         --stage     pre \
-        --output    results/qc/pre_KS2103T1_1_qc.html
+        --output    results/qc/pre_sample_qc.html
 
 Input format is auto-detected from the file extension:
     .h5ad → AnnData  |  .h5 → 10x or generic HDF5
@@ -31,6 +31,7 @@ warnings.filterwarnings("ignore")
 import pandas as pd
 import scanpy as sc
 import yaml
+import numpy as np
 
 # Pipeline modules
 sys.path.insert(0, os.path.dirname(__file__))
@@ -42,6 +43,8 @@ from utils.qc_plots import (
     fig_scatter,
     fig_histogram_genes,
     fig_histogram_mt,
+    fig_multi_mad_histograms,
+    fig_mt_decay_curve,
 )
 
 sc.settings.verbosity = 1
@@ -88,16 +91,25 @@ def compute_qc_metrics(adata: sc.AnnData) -> sc.AnnData:
     return adata
 
 
-# QC summary tables
-import pandas as pd
-import scanpy as sc
+def calculate_mad_thresholds(series: pd.Series, n_mads: float = 3.0) -> tuple:
+    """
+    Thresholds usingf the Median Absolute Deviation(a.k.a MAD)
+    """
+    median = series.median()
+    mad = np.median(np.abs(series - median))
+    
+    scaled_mad = mad * 1.4826
+    
+    lower_limit = median - (n_mads * scaled_mad)
+    upper_limit = median + (n_mads * scaled_mad)
+    
+    return max(0, lower_limit), upper_limit
 
 # QC summary tables
-def save_qc_metrics(adata: sc.AnnData) -> pd.DataFrame:
+def save_qc_metrics(adata: sc.AnnData, sample_id: str) -> pd.DataFrame:
     """
     Extracts the computed QC metrics from adata.obs into a standalone pandas DataFrame.
     """
-    # 1. Define the specific QC columns created by sc.pp.calculate_qc_metrics
     qc_columns = [
         "n_genes_by_counts",
         "log1p_n_genes_by_counts",
@@ -109,9 +121,8 @@ def save_qc_metrics(adata: sc.AnnData) -> pd.DataFrame:
     
     available_columns = [col for col in qc_columns if col in adata.obs.columns]
     metrics_df = adata.obs[available_columns].copy()
-    metrics_df.insert(0, "cell_id", metrics_df.index)
-    
-    print(f"[INFO] Created QC DataFrame with shape: {metrics_df.shape}")
+    metrics_df.insert(0, "sample_id", sample_id)
+
     return metrics_df
 
 #  Main 
@@ -119,29 +130,52 @@ def save_qc_metrics(adata: sc.AnnData) -> pd.DataFrame:
 def main():
     args = parse_args()
 
-    # Config
     with open(args.cfg) as f:
         config = yaml.safe_load(f)
-    thresholds = config["qc_thresholds"]
+    
+    # Let's see if n_mads is configured, default to 3 if not
+    n_mads = config.get("qc_thresholds", {}).get("n_mads", 3)
 
     # Load + annotate
     adata = load_data(args.input)
     adata = attach_metadata(adata, args.metadata, args.sample_id)
     adata = compute_qc_metrics(adata)
 
-    # Build figures
+    log_genes = adata.obs["log1p_n_genes_by_counts"]
+    log_counts = adata.obs["log1p_total_counts"]
+    log_gene_low, log_gene_high = calculate_mad_thresholds(log_genes, n_mads=n_mads)
+    log_count_low, _ = calculate_mad_thresholds(log_counts, n_mads=n_mads)
+    
+    # Convert log-space thresholds back to natural linear scale space f
+    mad_thresholds = {
+        "min_genes": int(np.expm1(log_gene_low)),
+        "max_genes": int(np.expm1(log_gene_high)),
+        "min_counts": int(np.expm1(log_count_low)),
+        "max_pct_mt": float(calculate_mad_thresholds(adata.obs["pct_counts_mt"], n_mads=n_mads)[1])
+    }
+    
+    # Figures
     figures = [
-        fig_summary_table(adata, args.sample_id, thresholds),
+        fig_summary_table(adata, args.sample_id, mad_thresholds),
         fig_violin(adata, args.sample_id),
         fig_scatter(adata, args.sample_id),
         fig_histogram_genes(adata, args.sample_id,
-                            thresholds["min_genes"], thresholds["max_genes"]),
-        fig_histogram_mt(adata, args.sample_id, thresholds["max_pct_mt"]),
+                            mad_thresholds["min_genes"], mad_thresholds["max_genes"]),
+        fig_histogram_mt(adata, args.sample_id, mad_thresholds["max_pct_mt"]),
+        fig_multi_mad_histograms(adata, args.sample_id),
+        fig_mt_decay_curve(adata, args.sample_id),
     ]
     
-    # Build qc metrics summary table
-
-
+    # Save qc metrics summary table
+    qc_df = save_qc_metrics(adata, args.sample_id)
+    
+    # Label cell-specific pass/fail flags directly inside your output CSV for downstream tracking
+    qc_df["pass_mad_filters"] = (
+        (adata.obs["n_genes_by_counts"] >= mad_thresholds["min_genes"]) &
+        (adata.obs["n_genes_by_counts"] <= mad_thresholds["max_genes"]) &
+        (adata.obs["total_counts"] >= mad_thresholds["min_counts"]) &
+        (adata.obs["pct_counts_mt"] <= mad_thresholds["max_pct_mt"])
+    )
 
     # HTML
     os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
@@ -149,17 +183,19 @@ def main():
         figures=figures,
         sample_id=args.sample_id,
         stage=args.stage,
-        thresholds=thresholds,
+        thresholds=mad_thresholds, 
         n_cells=adata.n_obs,
     )
     with open(args.output, "w") as f:
         f.write(html)
-    print(f"[INFO] HTML report saved to: {args.output}")
 
-    # PDF (same base path, .pdf extension)
+    # PDF
     pdf_path = os.path.splitext(args.output)[0] + ".pdf"
     export_pdf(figures, pdf_path, args.sample_id, args.stage)
 
+    # CSV
+    csv_path = args.output.replace("_qc.html", "_cell_qc_metrics.csv")
+    qc_df.to_csv(csv_path, index=False)
 
 if __name__ == "__main__":
     main()
