@@ -1,57 +1,93 @@
 # Snakemake Pipeline — scRNA-seq
+# ══════════════════════════════════════════════════════════════════════════════
 
 import pandas as pd
 import os
 
-# Point to config file
+# ── Config ────────────────────────────────────────────────────────────────────
 configfile: "config/config.yaml"
 
-# Load the dedicated sample sheet (auto-detects CSV or TSV)
+# ── Sample sheet ──────────────────────────────────────────────────────────────
 SAMPLE_SHEET = pd.read_csv(config["input"]["sample_sheet"], sep=None, engine="python")
+SAMPLE_PATHS = dict(zip(
+    SAMPLE_SHEET.iloc[:, 0].astype(str),
+    SAMPLE_SHEET.iloc[:, 1].astype(str),
+))
+SAMPLES = list(SAMPLE_PATHS.keys())
 
-# Map Column 1 (sample_id) to Column 2 (file_path)
-SAMPLE_PATHS = dict(zip(SAMPLE_SHEET.iloc[:, 0].astype(str), SAMPLE_SHEET.iloc[:, 1].astype(str)))
+# ── Output directories ────────────────────────────────────────────────────────
+QC_DIR         = config["output"]["qc_dir"]
+FILT_DIR       = config["output"]["filtered_dir"]
+SOUPX_DIR      = config["output"]["soupx_dir"]
+MERGE_DIR      = config["output"]["merge_dir"]
+HARMONY_DIR    = config["output"]["harmony_dir"]
+CLUSTERING_DIR = config["output"]["clustering_dir"]
+USE_SOUPX      = config["soupx"]["use_soupx"]
+RUN_HARMONY    = config["harmony"]["run_harmony"]
 
-# Extract sample names for Snakemake wildcards
-SAMPLES    = list(SAMPLE_PATHS.keys())
-QC_DIR     = config["output"]["qc_dir"]
-FILT_DIR   = config["output"]["filtered_dir"]
-SOUPX_DIR  = config["output"]["soupx_dir"]
-MERGE_DIR       = config["output"]["merge_dir"]
-HARMONY_DIR  = config["output"]["harmony_dir"]
-USE_SOUPX    = config["soupx"]["use_soupx"]
-RUN_HARMONY  = config["harmony"]["run_harmony"]
+# ── Helper functions ──────────────────────────────────────────────────────────
 
-# Helper function to resolve the h5 path per sample
 def sample_h5(wildcards):
+    """Resolve raw count matrix path for a sample."""
     return SAMPLE_PATHS[wildcards.sample]
 
-# Helper function to resolve the count matrix fed into QC/filtering:
-# the SoupX-corrected .h5ad if config["soupx"]["use_soupx"] is true,
-# otherwise the original sample matrix.
+
 def qc_input(wildcards):
+    """
+    Resolve the count matrix fed into QC / filtering:
+    - SoupX-corrected .h5ad if use_soupx: true in config
+    - Raw matrix from sample sheet otherwise
+    """
     if USE_SOUPX:
         return os.path.join(SOUPX_DIR, f"{wildcards.sample}.h5ad")
-    else:
-        return sample_h5(wildcards)
+    return sample_h5(wildcards)
 
 
-# Include rules 
+def clustering_input(wildcards):
+    """
+    Resolve the clustering input:
+    - Harmony-integrated .h5ad if use_harmony: true in config
+    - Merged object otherwise
+    """
+    if config["clustering"]["use_harmony"]:
+        return os.path.join(HARMONY_DIR, "sc.h5ad")
+    return os.path.join(MERGE_DIR, "sc.h5ad")
+
+
+# ── Include rules ─────────────────────────────────────────────────────────────
+include: "rules/soupx.smk"
 include: "rules/qc_pre.smk"
+include: "rules/multiqc_report.smk"
 include: "rules/filtering.smk"
 include: "rules/qc_post.smk"
-include: "rules/soupx.smk"
 include: "rules/merge.smk"
 include: "rules/harmony.smk"
-# Target rule 
-# Expan is used so that all SAMPLES are run through the command
+include: "rules/clustering.smk"
+
+
+# ── Target rule ───────────────────────────────────────────────────────────────
 rule all:
     input:
-        expand(os.path.join(QC_DIR,  "pre_{sample}_qc.html"),   sample=SAMPLES),
-        expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"), sample=SAMPLES),
-        expand(os.path.join(QC_DIR,  "post_{sample}_qc.html"),  sample=SAMPLES),
-        expand(os.path.join(SOUPX_DIR,  "{sample}.h5ad"),  sample=SAMPLES),
+        # Per-sample pre-filtering QC
+        expand(os.path.join(QC_DIR, "pre_{sample}_qc.html"),              sample=SAMPLES),
+        expand(os.path.join(QC_DIR, "pre_{sample}_cell_qc_metrics.csv"),  sample=SAMPLES),
+        # Cohort pre-filtering report
+        os.path.join(QC_DIR, "pre_cohort_qc_report.html"),
+        os.path.join(QC_DIR, "pre_cohort_qc_metrics.csv"),
+        # Filtered data
+        expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"),          sample=SAMPLES),
+        # Per-sample post-filtering QC
+        expand(os.path.join(QC_DIR, "post_{sample}_qc.html"),             sample=SAMPLES),
+        expand(os.path.join(QC_DIR, "post_{sample}_cell_qc_metrics.csv"), sample=SAMPLES),
+        # Cohort post-filtering report
+        os.path.join(QC_DIR, "post_cohort_qc_report.html"),
+        os.path.join(QC_DIR, "post_cohort_qc_metrics.csv"),
+        # SoupX
+        expand(os.path.join(SOUPX_DIR, "{sample}.h5ad"),                  sample=SAMPLES),
+        # Merged object
         os.path.join(MERGE_DIR, "sc.h5ad"),
+        # Harmony integration (conditional on run_harmony)
         *([os.path.join(HARMONY_DIR, "sc.h5ad"),
-           os.path.join(HARMONY_DIR, "sc_harmony.pdf")] if RUN_HARMONY else [])
-
+           os.path.join(HARMONY_DIR, "sc_harmony.pdf")] if RUN_HARMONY else []),
+        # Clustering
+        os.path.join(CLUSTERING_DIR, "files", "sc.h5ad"),

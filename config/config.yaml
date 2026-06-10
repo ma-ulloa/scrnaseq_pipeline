@@ -18,6 +18,7 @@ output:
 
 #  QC Thresholds 
 qc_thresholds:
+  n_mads:             3
   min_genes:          200   
   max_genes:          6000  
   min_counts:         500   
@@ -26,8 +27,8 @@ qc_thresholds:
 
 #  Doublet Detection 
 doublets:
-  run_scrublet:          true
-  expected_doublet_rate: 0.05
+  run_scrublet:  true
+  expected_rate: 0.05  
 
 # union or intersection of genes when merging
 merge:
