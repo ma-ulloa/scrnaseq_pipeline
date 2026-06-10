@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-05_harmony.py
+06_harmony.py
 ────────────────────────────────────────────────────────────────
 Pre-processes the merged dataset (normalization + optional scaling),
 computes PCA, clusters and embeds it with UMAP, plots the result
