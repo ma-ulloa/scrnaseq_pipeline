@@ -1,5 +1,5 @@
 """
-Step 05 – FACS Contamination Removal
+Step 07 – FACS Contamination Removal
 ==============================================
 Because samples are FACS-sorted, there is cross-fraction contamination:
   - Epcam+ (epithelial) cells present in the Immune fraction
@@ -19,8 +19,8 @@ Inputs
 
 Outputs
 -------
-    results/05_remove_facs_contamination/files/sc.h5ad
-    results/05_remove_facs_contamination/figures/
+    results/07_remove_facs_contamination/files/sc.h5ad
+    results/07_remove_facs_contamination/figures/
 """
 import argparse
 import os
