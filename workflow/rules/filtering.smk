@@ -20,7 +20,7 @@ rule filtering:
         "logs/filtering/{sample}.log"
     shell:
         """
-        python workflow/scripts/03_filtering.py \
+        python workflow/scripts/04_filtering.py \
             --input     "{input.h5}"           \
             --metrics   "{input.metrics}"      \
             --metadata  {input.metadata}       \

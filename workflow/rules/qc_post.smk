@@ -21,7 +21,7 @@ rule qc_report_post:
         "logs/qc/post_{sample}.log"
     shell:
         """
-        python workflow/scripts/04_qc_post_report.py \
+        python workflow/scripts/05_qc_post_report.py \
             --input     "{input.h5ad}"         \
             --metadata  {input.metadata}       \
             --cfg       "{input.cfg}"          \

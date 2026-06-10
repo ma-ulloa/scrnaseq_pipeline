@@ -25,7 +25,7 @@ rule qc_report_pre:
         "logs/qc/pre_{sample}.log"
     shell:
         """
-        python workflow/scripts/01_qc_stats_report.py \
+        python workflow/scripts/02_qc_stats_report.py \
             --input     "{input.h5}"           \
             --metadata  {input.metadata}       \
             --cfg       "{input.cfg}"          \

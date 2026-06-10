@@ -14,7 +14,7 @@ rule multiqc_pre:
         "logs/qc/cohort_summary_pre.log"
     shell:
         """
-        python workflow/scripts/02_multisample_report.py \
+        python workflow/scripts/03_multisample_report.py \
             --input_files {input.csvs}         \
             --metadata    {input.metadata}     \
             --output_csv  {output.csv}         \

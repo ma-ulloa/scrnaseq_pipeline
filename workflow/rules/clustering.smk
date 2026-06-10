@@ -22,7 +22,7 @@ rule clustering:
         "workflow/logs/clustering/log.log"
     shell:
         """
-        python workflow/scripts/07_clustering.py \
+        python workflow/scripts/08_clustering.py \
             --input       "{input.h5ad}"          \
             --markers     "{input.marker_file}"   \
             --output      "{output.h5ad}"         \

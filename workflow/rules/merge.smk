@@ -19,7 +19,7 @@ rule merge_adatas:
         "logs/merge_adatas/log.log"
     shell:
         """
-        python workflow/scripts/03_merge_adatas.py \
+        python workflow/scripts/06_merge_adatas.py \
             --inputs            {input.h5ads}          \
             --join             "{params.join}" \
             --output           "{output.h5ad}"
