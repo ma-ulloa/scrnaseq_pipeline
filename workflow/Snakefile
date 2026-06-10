@@ -17,8 +17,10 @@ SAMPLES    = list(SAMPLE_PATHS.keys())
 QC_DIR     = config["output"]["qc_dir"]
 FILT_DIR   = config["output"]["filtered_dir"]
 SOUPX_DIR  = config["output"]["soupx_dir"]
-MERGE_DIR  = config["output"]["merge_dir"]
-USE_SOUPX  = config["soupx"]["use_soupx"]
+MERGE_DIR       = config["output"]["merge_dir"]
+HARMONY_DIR  = config["output"]["harmony_dir"]
+USE_SOUPX    = config["soupx"]["use_soupx"]
+RUN_HARMONY  = config["harmony"]["run_harmony"]
 
 # Helper function to resolve the h5 path per sample
 def sample_h5(wildcards):
@@ -40,7 +42,7 @@ include: "rules/filtering.smk"
 include: "rules/qc_post.smk"
 include: "rules/soupx.smk"
 include: "rules/merge.smk"
-
+include: "rules/harmony.smk"
 # Target rule 
 # Expan is used so that all SAMPLES are run through the command
 rule all:
@@ -49,5 +51,7 @@ rule all:
         expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"), sample=SAMPLES),
         expand(os.path.join(QC_DIR,  "post_{sample}_qc.html"),  sample=SAMPLES),
         expand(os.path.join(SOUPX_DIR,  "{sample}.h5ad"),  sample=SAMPLES),
-        os.path.join(MERGE_DIR,  "sc.h5ad")
+        os.path.join(MERGE_DIR, "sc.h5ad"),
+        *([os.path.join(HARMONY_DIR, "sc.h5ad"),
+           os.path.join(HARMONY_DIR, "sc_harmony.pdf")] if RUN_HARMONY else [])
 

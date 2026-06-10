@@ -12,7 +12,7 @@ input:
 output:
   qc_dir:         "results/qc/"
   filtered_dir:   "results/filtered/"
-  integrated_dir: "results/integrated/"
+  harmony_dir:    "results/06_harmony/"
   soupx_dir:      "results/01_soupx/files"
   merge_dir:      "results/03_merge_adatas/files"
 
@@ -38,3 +38,19 @@ merge:
 # If false, they use the original count matrices from the sample sheet.
 soupx:
   use_soupx: false
+
+# Preprocessing
+
+pp:
+  scale: false
+  normalize: total_counts
+  factor: 10e4
+
+# Harmony integration
+harmony:
+  run_harmony: true
+  integration_keys:
+    - sample_id
+  n_pcs: 20
+  thetas: null        # divergence penalty per key; null → harmonypy default (2 per key)
+                      # provide one value per integration key, e.g. [2, 1]
