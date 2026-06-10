@@ -12,9 +12,10 @@ input:
 output:
   qc_dir:         "results/qc/"
   filtered_dir:   "results/filtered/"
-  harmony_dir:    "results/06_harmony/"
   soupx_dir:      "results/01_soupx/files"
   merge_dir:      "results/03_merge_adatas/files"
+  harmony_dir:    "results/06_harmony/files"
+  clustering_dir: "results/07_clustering"
 
 #  QC Thresholds 
 qc_thresholds:
@@ -54,3 +55,10 @@ harmony:
     - sample_id
   n_pcs: 20
   thetas: null      
+
+# Clustering
+clustering:
+  use_harmony:     true
+  resolution_test: [.1,.2,.3,.4,.5,.6,.7,.8,0.9,1]
+  seed: 42
+  marker_file: "config/markers.csv"   # two columns: gene, cell_state
