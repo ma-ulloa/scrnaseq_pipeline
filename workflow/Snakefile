@@ -27,7 +27,6 @@ def sample_h5(wildcards):
     """Resolve raw count matrix path for a sample."""
     return SAMPLE_PATHS[wildcards.sample]
 
-
 def qc_input(wildcards):
     """
     Resolve the count matrix fed into QC / filtering:
@@ -52,10 +51,11 @@ def clustering_input(wildcards):
 
 # Include rules
 include: "rules/soupx.smk"
-include: "rules/qc_pre.smk"
-include: "rules/multiqc_report.smk"
-include: "rules/filtering.smk"
-include: "rules/qc_post.smk"
+include: "rules/qc_pre.smk"          
+include: "rules/multiqc_pre.smk"
+include: "rules/multiqc_post.smk"   
+include: "rules/filtering.smk"        
+include: "rules/qc_post.smk"          
 include: "rules/merge.smk"
 include: "rules/harmony.smk"
 include: "rules/clustering.smk"
@@ -64,10 +64,23 @@ include: "rules/clustering.smk"
 # Target rule
 rule all:
     input:
-        expand(os.path.join(QC_DIR,  "pre_{sample}_qc.html"),   sample=SAMPLES),
-        expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"), sample=SAMPLES),
-        expand(os.path.join(QC_DIR,  "post_{sample}_qc.html"),  sample=SAMPLES),
-        expand(os.path.join(SOUPX_DIR, "{sample}.h5ad"),        sample=SAMPLES),
+        # Per-sample pre-filtering QC
+        expand(os.path.join(QC_DIR, "pre_{sample}_qc.html"),             sample=SAMPLES),
+        expand(os.path.join(QC_DIR, "pre_{sample}_cell_qc_metrics.csv"), sample=SAMPLES),
+        # Cohort pre-filtering report
+        os.path.join(QC_DIR, "pre_cohort_qc_report.html"),
+        os.path.join(QC_DIR, "pre_cohort_qc_metrics.csv"),
+        # Filtered data
+        expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"),         sample=SAMPLES),
+        # Per-sample post-filtering QC
+        expand(os.path.join(QC_DIR, "post_{sample}_qc.html"),            sample=SAMPLES),
+        expand(os.path.join(QC_DIR, "post_{sample}_cell_qc_metrics.csv"),sample=SAMPLES),
+        # Cohort post-filtering report
+        os.path.join(QC_DIR, "post_cohort_qc_report.html"),
+        os.path.join(QC_DIR, "post_cohort_qc_metrics.csv"),
+        # SoupX (only produced when use_soupx: true)
+        expand(os.path.join(SOUPX_DIR, "{sample}.h5ad"),                 sample=SAMPLES),
+        # Final merged object
         os.path.join(MERGE_DIR, "sc.h5ad"),
         *([os.path.join(HARMONY_DIR, "sc.h5ad"),
            os.path.join(HARMONY_DIR, "sc_harmony.pdf")] if RUN_HARMONY else []),

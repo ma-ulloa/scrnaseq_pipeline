@@ -1,23 +1,31 @@
-rule filter_cells:
+# ============================================================
+# Rule: filtering
+# Filters a single sample using the outlier flags written by qc_report_pre.
+# Reads outlier_{n_mads}mad from the pre-filter metrics CSV —
+# no MAD recomputation inside this script.
+# ============================================================
+rule filtering:
     input:
-        h5     = qc_input,                                                    # Raw data matrix
-        csv    = os.path.join(QC_DIR, "pre_{sample}_cell_qc_metrics.csv"),   # MAD info
-        meta   = config["input"]["metadata"],
-        cfg    = "config/config.yaml"
+        h5       = qc_input,                    # same input as qc_report_pre
+        metrics  = os.path.join(QC_DIR, "pre_{sample}_cell_qc_metrics.csv"),
+        metadata = config["input"]["metadata"],
+        cfg      = "config/config.yaml",
     output:
-        h5ad   = os.path.join(FILT_DIR, "{sample}_filtered.h5ad")
+        h5ad = os.path.join(FILT_DIR, "{sample}_filtered.h5ad"),
+    params:
+        sample_id = "{sample}",
     conda:
         "/srv/data/users/shared_conda_alejandra_martin/scanpy-env"
     log:
         "logs/filtering/{sample}.log"
     shell:
         """
-        python workflow/scripts/02_filtering.py \
-            --input     "{input.h5}" \
-            --metadata  "{input.meta}" \
-            --qc_csv    "{input.csv}" \
-            --config    "{input.cfg}" \
-            --sample_id "{wildcards.sample}" \
-            --output    "{output.h5ad}" \
+        python workflow/scripts/03_filtering.py \
+            --input     "{input.h5}"           \
+            --metrics   "{input.metrics}"      \
+            --metadata  {input.metadata}       \
+            --cfg       "{input.cfg}"          \
+            --sample_id {params.sample_id}     \
+            --output    "{output.h5ad}"        \
         > {log} 2>&1
         """
