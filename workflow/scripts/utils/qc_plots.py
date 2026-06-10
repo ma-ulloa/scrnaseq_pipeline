@@ -190,59 +190,6 @@ def fig_histogram_mt(adata: sc.AnnData, sample_id: str, max_pct_mt: float) -> pl
     return fig
 
 
-def fig_multi_mad_histograms(adata: sc.AnnData, sample_id: str) -> plt.Figure:
-    """
-    Histograms for Total Counts and N Genes with overlaid MAD threshold lines
-    from 1× to 5× MAD (computed on log1p-transformed values, converted back to
-    linear space for display).
-
-    Requires log1p_n_genes_by_counts and log1p_total_counts in adata.obs,
-    which are added automatically when calculate_qc_metrics is called with
-    log1p=True (as in 01_qc_stats_report.py).
-    """
-    def get_mad_bounds(series: pd.Series, n_mads: float):
-        median = series.median()
-        mad = np.median(np.abs(series - median)) * 1.4826
-        return max(0.0, median - n_mads * mad), median + n_mads * mad
-
-    log_genes  = adata.obs["log1p_n_genes_by_counts"]
-    log_counts = adata.obs["log1p_total_counts"]
-
-    # Yellow (1 MAD) → dark red (5 MAD)
-    colors = ["#ffcc00", "#ff9900", "#ff3300", "#cc0000", "#660000"]
-
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-    fig.suptitle(f"MAD Threshold Sensitivity — {sample_id}", fontsize=14, fontweight="bold")
-
-    sns.histplot(adata.obs["n_genes_by_counts"],  bins=50, ax=axes[0],
-                 color="#8fbc8f", kde=True)
-    axes[0].set_title("Detected Genes Distribution")
-    axes[0].set_xlabel("Genes / Cell")
-
-    sns.histplot(adata.obs["total_counts"], bins=50, ax=axes[1],
-                 color="#69b3a2", kde=True)
-    axes[1].set_title("Total UMI Counts Distribution")
-    axes[1].set_xlabel("UMIs / Cell")
-
-    for m, col in zip(range(1, 6), colors):
-        g_lo, g_hi = get_mad_bounds(log_genes, m)
-        c_lo, _    = get_mad_bounds(log_counts, m)
-
-        lin_g_lo = np.expm1(g_lo)
-        lin_g_hi = np.expm1(g_hi)
-        lin_c_lo = np.expm1(c_lo)
-
-        label = f"{m} MAD" if m in (1, 3, 5) else None
-        axes[0].axvline(lin_g_lo, color=col, linestyle="--", alpha=0.85, label=label)
-        axes[0].axvline(lin_g_hi, color=col, linestyle="--", alpha=0.85)
-        axes[1].axvline(lin_c_lo, color=col, linestyle="--", alpha=0.85, label=label)
-
-    axes[0].legend(title="Lower / Upper bounds", fontsize=8)
-    axes[1].legend(title="Lower bound",          fontsize=8)
-    plt.tight_layout()
-    return fig
-
-
 def fig_mt_decay_curve(adata: sc.AnnData, sample_id: str) -> plt.Figure:
     """
     Data-retention curve: % cells and % total UMIs retained at each MT cutoff.
