@@ -21,7 +21,7 @@ rule harmony:
         "logs/harmony/log.log"
     shell:
         """
-        python workflow/scripts/07_harmony.py \
+        python workflow/scripts/08_harmony.py \
             --input            "{input.h5ad}"             \
             --config           "config/config.yaml"       \
             --integration_keys {params.integration_keys}  \
