@@ -17,8 +17,10 @@ SAMPLES    = list(SAMPLE_PATHS.keys())
 QC_DIR     = config["output"]["qc_dir"]
 FILT_DIR   = config["output"]["filtered_dir"]
 SOUPX_DIR  = config["output"]["soupx_dir"]
-MERGE_DIR  = config["output"]["merge_dir"]
-USE_SOUPX  = config["soupx"]["use_soupx"]
+MERGE_DIR      = config["output"]["merge_dir"]
+HARMONY_DIR    = config["output"]["harmony_dir"]
+CLUSTERING_DIR = config["output"]["clustering_dir"]
+USE_SOUPX      = config["soupx"]["use_soupx"]
 
 # Helper function to resolve the h5 path per sample
 def sample_h5(wildcards):
@@ -33,6 +35,14 @@ def qc_input(wildcards):
     else:
         return sample_h5(wildcards)
 
+# Helper function to resolve the clustering input:
+# the Harmony-integrated .h5ad if use_harmony is true, otherwise the merged object.
+def clustering_input(wildcards):
+    if config["clustering"]["use_harmony"]:
+        return os.path.join(HARMONY_DIR, "sc.h5ad")
+    else:
+        return os.path.join(MERGE_DIR, "sc.h5ad")
+
 
 # Include rules 
 include: "rules/qc_pre.smk"
@@ -40,8 +50,9 @@ include: "rules/filtering.smk"
 include: "rules/qc_post.smk"
 include: "rules/soupx.smk"
 include: "rules/merge.smk"
+include: "rules/clustering.smk"
 
-# Target rule 
+# Target rule
 # Expan is used so that all SAMPLES are run through the command
 rule all:
     input:
@@ -49,5 +60,6 @@ rule all:
         expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"), sample=SAMPLES),
         expand(os.path.join(QC_DIR,  "post_{sample}_qc.html"),  sample=SAMPLES),
         expand(os.path.join(SOUPX_DIR,  "{sample}.h5ad"),  sample=SAMPLES),
-        os.path.join(MERGE_DIR,  "sc.h5ad")
+        os.path.join(MERGE_DIR,      "sc.h5ad"),
+        os.path.join(CLUSTERING_DIR, "files", "sc.h5ad")
 
