@@ -1,5 +1,9 @@
 # Pipeline Configuration
 
+# SPECIES
+
+species: "human"
+
 #  INPUT 
 input:
   # Sample sheet mapping sample IDs to their paths
