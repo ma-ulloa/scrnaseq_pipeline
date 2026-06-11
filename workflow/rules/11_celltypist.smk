@@ -13,7 +13,7 @@ rule celltypist:
     output:
         h5ad = os.path.join(CELLTYPIST_DIR, "sc.h5ad")
     params:
-        model      = _celltypist_model(config),
+        model      = CELLTYPIST_MODEL,
         leiden_key = config["celltypist"].get("leiden_key") or "",
         basis      = "umap_harmony" if config["clustering"]["use_harmony"] else "umap_pca"
     conda:

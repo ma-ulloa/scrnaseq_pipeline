@@ -17,7 +17,7 @@ rule soupx:
         filtered  = sample_h5,
         raw       = sample_raw_h5,
         soupgenes = config["soupx"]["soupgenes"],
-        metadata  = config["input"]["samples"],
+        samples  = config["input"]["samples"]
     output:
         h5ad = os.path.join(SOUPX_DIR, "{sample}.h5ad"),
     params:
@@ -33,7 +33,7 @@ rule soupx:
             --filtered           "{input.filtered}"          \
             --raw                "{input.raw}"               \
             --soupgenes          "{input.soupgenes}"         \
-            --metadata           "{input.metadata}"          \
+            --samples            "{input.samples}"          \
             --sample_id          "{params.sample_id}"        \
             --output             "{output.h5ad}"             \
             --apply_to_fractions {params.apply_to_fractions} \

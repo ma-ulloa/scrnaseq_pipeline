@@ -32,7 +32,7 @@ def compute_qc_metrics(adata: sc.AnnData, species: str) -> sc.AnnData:
     if species == "human":
         adata.var["mt"]   = adata.var_names.str.startswith(HUMAN_MT)
         adata.var["ribo"] = adata.var_names.str.startswith(HUMAN_RIBO)
-    else:
+    else: # To do mouse
         adata.var["mt"]   = adata.var_names.str.startswith(MOUSE_MT)
         adata.var["ribo"] = adata.var_names.str.startswith(MOUSE_RIBO)
 

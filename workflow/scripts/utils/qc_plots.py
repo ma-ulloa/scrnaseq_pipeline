@@ -50,7 +50,7 @@ plt.rcParams.update({
 
 # Metadata colour maps reused across plots
 RESPONSE_COLORS = {"responder": "#4C72B0", "control": "#DD8452"}
-CELLS_COLORS    = {"epi_stroma": "#9FCBAD", "immune": "#4A4466"}
+CELLS_COLORS    = {"EPI+DN": "#9FCBAD", "IMMUNE": "#4A4466"}
 
 
 # ══════════════════════════════════════════════════════════════════════════════

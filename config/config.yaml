@@ -47,7 +47,7 @@ merge:
 soupx:
   use_soupx: false
   soupgenes: "config/soupgenes.txt" # genes used as soup
-  apply_to_fractions: "Immune" # apply soupx to this fraction 
+  apply_to_fractions: ["IMMUNE"] # apply soupx to this fraction 
 
 # Preprocessing
 pp:

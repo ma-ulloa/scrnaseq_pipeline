@@ -72,7 +72,7 @@ def main():
 
     # Recompute QC metrics on the filtered cell population.
     # Gene/count distributions shift post-filter, so fresh metrics are needed.
-    adata = compute_qc_metrics(adata)
+    adata = compute_qc_metrics(adata, species=config.get("species"))
 
     # Thresholds are shown as reference lines on the histogram plots.
     # Post-filter they describe what was applied, not what will be applied.
