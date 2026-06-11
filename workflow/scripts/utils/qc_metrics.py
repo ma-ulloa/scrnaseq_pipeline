@@ -19,17 +19,23 @@ import scanpy as sc
 
 # ── Gene-name prefixes ────────────────────────────────────────────────────────
 # Human: MT-  |  Mouse: mt-  |  other conventions: MT_
-MT_PREFIXES   = ("MT-", "mt-", "MT_")
-RIBO_PREFIXES = ("RPS", "RPL", "Rps", "Rpl")
+HUMAN_MT      = ("MT-", "MT_")
+MOUSE_MT      = ("mt-")
+HUMAN_RIBO    = ("RPS", "RPL")
+MOUSE_RIBO    = ("Rps", "Rpl")
 
 
 # ── Core computation ──────────────────────────────────────────────────────────
 
-def compute_qc_metrics(adata: sc.AnnData) -> sc.AnnData:
+def compute_qc_metrics(adata: sc.AnnData, species = str) -> sc.AnnData:
     """ Get metrics"""
 
-    adata.var["mt"]   = adata.var_names.str.startswith(MT_PREFIXES)
-    adata.var["ribo"] = adata.var_names.str.startswith(RIBO_PREFIXES)
+    if species == "human":
+        adata.var["mt"]   = adata.var_names.str.startswith(HUMAN_MT)
+        adata.var["ribo"] = adata.var_names.str.startswith(HUMAN_RIBO)
+    else:
+        adata.var["mt"]   = adata.var_names.str.startswith(MOUSE_MT)
+        adata.var["ribo"] = adata.var_names.str.startswith(MOUSE_RIBO)
 
     n_mt   = adata.var["mt"].sum()
     n_ribo = adata.var["ribo"].sum()

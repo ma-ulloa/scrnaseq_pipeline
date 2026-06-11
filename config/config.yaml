@@ -47,7 +47,6 @@ soupx:
   use_soupx: false
 
 # Preprocessing
-
 pp:
   scale: false
   normalize: total_counts

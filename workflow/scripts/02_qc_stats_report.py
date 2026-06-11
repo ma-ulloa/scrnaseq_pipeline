@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-01_qc_report.py
+02_qc_report.py
 ────────────────────────────────────────────────────────────────
 PRE-FILTER QC report for a single sample.
 
@@ -8,14 +8,6 @@ Loads raw data, computes QC metrics, writes per-MAD outlier flags
 to both the AnnData and the output CSV, and produces an HTML + PDF
 report that includes a MAD sensitivity section so we can
 decide which MAD multiplier to use before running 03_filtering.py.
-
-Usage:
-    python 01_qc_report.py \
-        --input     data/raw/sample.h5 \
-        --metadata  config/metadata.csv \
-        --cfg       config/config.yaml \
-        --sample_id KS2204T1_2 \
-        --output    results/qc/pre_KS2204T1_2_qc.html
 
 Output files (derived from --output path):
     pre_<sid>_qc.html
@@ -79,7 +71,7 @@ def main():
     # ── Load and annotate ─────────────────────────────────────────────────────
     adata = load_data(args.input)
     adata = attach_metadata(adata, args.metadata, args.sample_id)
-    adata = compute_qc_metrics(adata)
+    adata = compute_qc_metrics(adata, species=config.get(""))
 
     # Write outlier flags for every MAD 1-5 into adata.obs (and later the CSV)
     adata = add_outlier_flags(adata, mad_values=[1, 2, 3, 4, 5])
