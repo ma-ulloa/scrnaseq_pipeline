@@ -33,11 +33,12 @@ import scanpy as sc
 
 def parse_args():
     p = argparse.ArgumentParser(description="Remove FACS cross-fraction contamination")
-    p.add_argument("--input",     required=True, nargs="+", help="Merged .h5ad file")
+    p.add_argument("--input",     required=True, help="Merged .h5ad file")
     p.add_argument("--output",     required=True,            help="Output .h5ad path")
     p.add_argument("--seed",       type=int, default=42,     help="Random seed (default: 42)")
     p.add_argument("--resolution", type=float, default=1.5,  help="Leiden resolution for contamination clustering (default: 1.5)")
-    p.add_argument("--species" , required=True,type=str,help="Species the data was obtained from")
+    p.add_argument("--species" , required=True,type=str,help="Species the data was obtained from"),
+    p.add_argument("--non_sorted_flag", required=True, help="How cells coming from non-FACS sorted samples are specified in the sample file")
     return p.parse_args()
 
 
@@ -55,8 +56,7 @@ def main():
     sc.settings.verbosity = 1
 
     # ── Concatenate samples ────────────────────────────────────────────────
-    adatas = [sc.read_h5ad(f) for f in args.inputs]
-    adata  = ad.concat(adatas, join="outer")
+    adata  = sc.read_h5ad(args.input)
     print(f"[INFO] Concatenated: {adata.n_obs:,} cells × {adata.n_vars:,} genes")
 
     # ── Step 1: Remove marker-positive cells from wrong fraction ───────────
