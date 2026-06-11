@@ -50,7 +50,7 @@ plt.rcParams.update({
 
 # Metadata colour maps reused across plots
 RESPONSE_COLORS = {"responder": "#4C72B0", "control": "#DD8452"}
-CELLS_COLORS    = {"epi_stroma": "#55A868", "immune": "#C44E52"}
+CELLS_COLORS    = {"epi_stroma": "#9FCBAD", "immune": "#4A4466"}
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -250,16 +250,11 @@ def fig_cohort_bar_plots(merged_df: pd.DataFrame) -> list:
     Bar plots comparing per-sample distributions across the cohort.
     One figure per QC metric; bars coloured by pre/post stage when both present.
 
-    merged_df: per-cell DataFrame (one row per cell).
-    errorbar="se" shows SE across cells within each sample — this is intentional
-    for QC purposes and is NOT an estimate of biological variability.
-
     Returns: list of plt.Figure
     """
     figures = []
-    has_multiple_stages = merged_df["stage"].nunique() > 1
-    hue_col = "stage" if has_multiple_stages else None
-    hue_order = ["pre", "post"] if has_multiple_stages else None
+    color_by = "cells" if "cells" in merged_df.columns else "sample_id"
+    palette  = CELLS_COLORS if color_by == "cells" else "tab10"
 
     bar_metrics = [
         ("total_counts",       "Mean Total Counts (UMIs) per Sample",   "Mean Total Counts"),
@@ -278,9 +273,8 @@ def fig_cohort_bar_plots(merged_df: pd.DataFrame) -> list:
             data=merged_df,
             x="sample_id", y=col_name,
             order=sample_order,
-            hue=hue_col, hue_order=hue_order,
-            palette="Set2",
-            errorbar="se",
+            hue=color_by,
+            palette= palette,
             edgecolor="0.2",
             ax=ax,
         )
@@ -288,8 +282,9 @@ def fig_cohort_bar_plots(merged_df: pd.DataFrame) -> list:
         ax.set_ylabel(ylabel, fontsize=11)
         ax.set_xlabel("Sample ID", fontsize=11)
         ax.tick_params(axis="x", rotation=45)
-        if hue_col:
-            ax.legend(title="Stage", frameon=False)
+        if color_by == "cells":
+            handles = [mpatches.Patch(color=v, label=k) for k, v in CELLS_COLORS.items()]
+            ax.legend(handles=handles, title="Cell fraction", frameon=False, fontsize=9)
         plt.tight_layout()
         figures.append(fig)
 
