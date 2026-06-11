@@ -53,7 +53,7 @@ sc.settings.verbosity = 1
 def parse_args():
     p = argparse.ArgumentParser(description="Pre-filter QC report — single sample")
     p.add_argument("--input",     required=True, help="Count matrix (any supported format)")
-    p.add_argument("--metadata",  required=True, help="Metadata CSV (first column = sample ID)")
+    p.add_argument("--samples",  required=True, help="samples CSV (first column = sample ID)")
     p.add_argument("--cfg",       required=True, help="config.yaml")
     p.add_argument("--sample_id", required=True, help="Sample ID to look up in metadata")
     p.add_argument("--output",    required=True, help="Output HTML path")
@@ -70,7 +70,7 @@ def main():
 
     # ── Load and annotate ─────────────────────────────────────────────────────
     adata = load_data(args.input)
-    adata = attach_metadata(adata, args.metadata, args.sample_id)
+    adata = attach_metadata(adata, args.samples, args.sample_id)
     adata = compute_qc_metrics(adata, species=config.get("species"))
 
     # Write outlier flags for every MAD 1-5 into adata.obs (and later the CSV)

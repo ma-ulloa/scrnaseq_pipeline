@@ -48,7 +48,7 @@ def parse_args():
     p = argparse.ArgumentParser(description="Filter single sample by MAD-derived thresholds")
     p.add_argument("--input",     required=True, help="Count matrix (any supported format)")
     p.add_argument("--metrics",   required=True, help="Per-cell QC metrics CSV from 01_qc_report.py")
-    p.add_argument("--metadata",  required=True, help="Metadata CSV")
+    p.add_argument("--samples",  required=True, help="Metadata CSV")
     p.add_argument("--cfg",       required=True, help="config.yaml")
     p.add_argument("--sample_id", required=True, help="Sample ID")
     p.add_argument("--output",    required=True, help="Output .h5ad path")
@@ -66,7 +66,7 @@ def main():
 
     # ── Load AnnData ──────────────────────────────────────────────────────────
     adata = load_data(args.input)
-    adata = attach_metadata(adata, args.metadata, args.sample_id)
+    adata = attach_metadata(adata, args.samples, args.sample_id)
 
     # ── Attach pre-computed outlier flags from the QC metrics CSV ─────────────
     metrics_df = pd.read_csv(args.metrics, index_col="cell_id")

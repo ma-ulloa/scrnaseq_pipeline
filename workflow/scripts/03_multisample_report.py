@@ -52,7 +52,7 @@ def parse_args():
         help="Space-separated list of per-sample cell_qc_metrics CSV files"
     )
     p.add_argument(
-        "--metadata", required=False, default=None,
+        "--samples", required=False, default=None,
         help="Optional: metadata CSV (first column = sample_id) to join onto merged table"
     )
     p.add_argument(
@@ -159,8 +159,8 @@ def main():
     master_df = merge_qc_metrics(args.input_files, args.stage)
 
     # 2. Optionally join metadata
-    if args.metadata and os.path.exists(args.metadata):
-        master_df = attach_metadata_to_merged(master_df, args.metadata)
+    if args.samples and os.path.exists(args.samples):
+        master_df = attach_metadata_to_merged(master_df, args.samples)
     else:
         print("[INFO] No metadata file provided — skipping metadata join.")
 

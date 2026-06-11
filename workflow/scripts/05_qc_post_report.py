@@ -6,10 +6,10 @@ POST-FILTER QC report for a single sample.
 
 Usage:
     python 04_qc_post_report.py \
-        --input     results/filtered/KS2204T1_2_filtered.h5ad \
-        --metadata  config/metadata.csv \
+        --input     results/filtered/matrix.h5ad \
+        --samples  config/samples.csv \
         --cfg       config/config.yaml \
-        --sample_id KS2204T1_2 \
+        --sample_id sample_id \
         --output    results/qc/post_KS2204T1_2_qc.html
 
 Output files (derived from --output path):
@@ -51,7 +51,7 @@ sc.settings.verbosity = 1
 def parse_args():
     p = argparse.ArgumentParser(description="Post-filter QC report — single sample")
     p.add_argument("--input",     required=True, help="Filtered .h5ad from 03_filtering.py")
-    p.add_argument("--metadata",  required=True, help="Metadata CSV (first column = sample ID)")
+    p.add_argument("--samples",  required=True, help="Metadata CSV (first column = sample ID)")
     p.add_argument("--cfg",       required=True, help="config.yaml")
     p.add_argument("--sample_id", required=True, help="Sample ID to look up in metadata")
     p.add_argument("--output",    required=True, help="Output HTML path")
@@ -68,7 +68,7 @@ def main():
 
     # ── Load filtered data ────────────────────────────────────────────────────
     adata = load_data(args.input)
-    adata = attach_metadata(adata, args.metadata, args.sample_id)
+    adata = attach_metadata(adata, args.samples, args.sample_id)
 
     # Recompute QC metrics on the filtered cell population.
     # Gene/count distributions shift post-filter, so fresh metrics are needed.

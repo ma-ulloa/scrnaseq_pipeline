@@ -24,7 +24,6 @@ MOUSE_MT      = ("mt-",)
 HUMAN_RIBO    = ("RPS", "RPL")
 MOUSE_RIBO    = ("Rps", "Rpl")
 
-
 # ── Core computation ──────────────────────────────────────────────────────────
 
 def compute_qc_metrics(adata: sc.AnnData, species: str) -> sc.AnnData:

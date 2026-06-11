@@ -7,7 +7,7 @@ species: "human"
 #  INPUT 
 input:
   # Sample sheet mapping sample IDs paths and metadata
-  sample_sheet: "config/samples.csv"
+  samples: "config/samples.csv"
 
 #  OUTPUT
 output:

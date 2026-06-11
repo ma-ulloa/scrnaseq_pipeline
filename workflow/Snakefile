@@ -7,7 +7,7 @@ import os
 configfile: "config/config.yaml"
 
 # Sample sheet
-SAMPLE_SHEET = pd.read_csv(config["input"]["sample_sheet"], sep=None, engine="python")
+SAMPLE_SHEET = pd.read_csv(config["input"]["samples"], sep=None, engine="python")
 SAMPLE_PATHS = dict(zip(SAMPLE_SHEET.iloc[:, 0].astype(str), SAMPLE_SHEET.iloc[:, 1].astype(str)))
 SAMPLES = list(SAMPLE_PATHS.keys())
 

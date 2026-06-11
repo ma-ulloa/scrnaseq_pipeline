@@ -7,7 +7,7 @@
 rule qc_report_post:
     input:
         h5ad     = os.path.join(FILT_DIR, "{sample}_filtered.h5ad"),
-        metadata = config["input"]["metadata"],
+        samples = config["input"]["samples"],
         cfg      = "config/config.yaml",
     output:
         html = os.path.join(QC_DIR, "post_{sample}_qc.html"),
@@ -23,7 +23,7 @@ rule qc_report_post:
         """
         python workflow/scripts/05_qc_post_report.py \
             --input     "{input.h5ad}"         \
-            --metadata  {input.metadata}       \
+            --samples  {input.samples}       \
             --cfg       "{input.cfg}"          \
             --sample_id {params.sample_id}     \
             --output    "{output.html}"        \
