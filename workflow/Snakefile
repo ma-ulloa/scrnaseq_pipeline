@@ -18,9 +18,18 @@ SOUPX_DIR      = config["output"]["soupx_dir"]
 MERGE_DIR      = config["output"]["merge_dir"]
 FACS_DIR       = config["output"]["facs_dir"]
 HARMONY_DIR    = config["output"]["harmony_dir"]
-CLUSTERING_DIR = config["output"]["clustering_dir"]
+CLUSTERING_DIR  = config["output"]["clustering_dir"]
+CELLTYPIST_DIR  = config["output"]["celltypist_dir"]
 USE_SOUPX      = config["soupx"]["use_soupx"]
 RUN_HARMONY    = config["harmony"]["run_harmony"]
+
+# define celltypist model with defaults for gut per species
+
+CELLTYPIST_MODEL = (
+    config["celltypist"].get("model")
+    or {"mouse": "Adult_Mouse_Gut", "human":
+"Cells_Intestinal_Tract"}[config["species"]]
+)
 
 # Helper functions
 
@@ -61,6 +70,7 @@ include: "rules/merge.smk"
 include: "rules/remove_facs_contamination.smk"
 include: "rules/harmony.smk"
 include: "rules/clustering.smk"
+include: "rules/celltypist.smk"
 
 
 # Target rule
@@ -87,3 +97,4 @@ rule all:
         *([os.path.join(HARMONY_DIR, "sc.h5ad"),
            os.path.join(HARMONY_DIR, "sc_harmony.pdf")] if RUN_HARMONY else []),
         os.path.join(CLUSTERING_DIR, "files", "sc.h5ad"),
+        os.path.join(CELLTYPIST_DIR, "sc.h5ad"),
