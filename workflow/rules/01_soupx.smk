@@ -17,9 +17,9 @@ rule soupx:
         filtered  = sample_h5,
         raw       = sample_raw_h5,
         soupgenes = config["soupx"]["soupgenes"],
-        metadata  = config["input"]["metadata"],
+        metadata  = config["input"]["samples"],
     output:
-        h5ad = "results/01_soupx/files/{sample}.h5ad",
+        h5ad = os.path.join(SOUPX_DIR, "{sample}.h5ad"),
     params:
         sample_id          = "{sample}",
         apply_to_fractions = lambda wc: " ".join(config["soupx"]["apply_to_fractions"]),

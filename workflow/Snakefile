@@ -12,14 +12,17 @@ SAMPLE_PATHS = dict(zip(SAMPLE_SHEET.iloc[:, 0].astype(str), SAMPLE_SHEET.iloc[:
 SAMPLES = list(SAMPLE_PATHS.keys())
 
 # Output directories
-QC_DIR         = config["output"]["qc_dir"]
-FILT_DIR       = config["output"]["filtered_dir"]
-SOUPX_DIR      = config["output"]["soupx_dir"]
-MERGE_DIR      = config["output"]["merge_dir"]
-FACS_DIR       = config["output"]["facs_dir"]
-HARMONY_DIR    = config["output"]["harmony_dir"]
-CLUSTERING_DIR  = config["output"]["clustering_dir"]
-CELLTYPIST_DIR  = config["output"]["celltypist_dir"]
+SOUPX_DIR         = config["output"]["soupx_dir"]
+QC_PRE_DIR        = config["output"]["qc_pre_dir"]
+MULTIQC_PRE_DIR   = config["output"]["multiqc_pre_dir"]
+MULTIQC_POST_DIR  = config["output"]["multiqc_post_dir"]
+FILT_DIR          = config["output"]["filtered_dir"]
+QC_POST_DIR       = config["output"]["qc_post_dir"]
+MERGE_DIR         = config["output"]["merge_dir"]
+FACS_DIR          = config["output"]["facs_dir"]
+HARMONY_DIR       = config["output"]["harmony_dir"]
+CLUSTERING_DIR    = config["output"]["clustering_dir"]
+CELLTYPIST_DIR    = config["output"]["celltypist_dir"]
 USE_SOUPX      = config["soupx"]["use_soupx"]
 RUN_HARMONY    = config["harmony"]["run_harmony"]
 
@@ -60,41 +63,41 @@ def clustering_input(wildcards):
 
 
 # Include rules
-include: "rules/soupx.smk"
-include: "rules/qc_pre.smk"          
-include: "rules/multiqc_pre.smk"
-include: "rules/multiqc_post.smk"   
-include: "rules/filtering.smk"        
-include: "rules/qc_post.smk"          
-include: "rules/merge.smk"
-include: "rules/remove_facs_contamination.smk"
-include: "rules/harmony.smk"
-include: "rules/clustering.smk"
-include: "rules/celltypist.smk"
+include: "rules/01_soupx.smk"
+include: "rules/02_qc_pre.smk"
+include: "rules/03_multiqc_pre.smk"
+include: "rules/04_multiqc_post.smk"
+include: "rules/05_filtering.smk"
+include: "rules/06_qc_post.smk"
+include: "rules/07_merge.smk"
+include: "rules/08_remove_facs_contamination.smk"
+include: "rules/09_harmony.smk"
+include: "rules/10_clustering.smk"
+include: "rules/11_celltypist.smk"
 
 
 # Target rule
 rule all:
     input:
         # Per-sample pre-filtering QC
-        expand(os.path.join(QC_DIR, "pre_{sample}_qc.html"),             sample=SAMPLES),
-        expand(os.path.join(QC_DIR, "pre_{sample}_cell_qc_metrics.csv"), sample=SAMPLES),
+        expand(os.path.join(QC_PRE_DIR, "pre_{sample}_qc.html"),             sample=SAMPLES),
+        expand(os.path.join(QC_PRE_DIR, "pre_{sample}_cell_qc_metrics.csv"), sample=SAMPLES),
         # Cohort pre-filtering report
-        os.path.join(QC_DIR, "pre_cohort_qc_report.html"),
-        os.path.join(QC_DIR, "pre_cohort_qc_metrics.csv"),
+        os.path.join(MULTIQC_PRE_DIR, "pre_cohort_qc_report.html"),
+        os.path.join(MULTIQC_PRE_DIR, "pre_cohort_qc_metrics.csv"),
         # Filtered data
-        expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"),         sample=SAMPLES),
+        expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"),             sample=SAMPLES),
         # Per-sample post-filtering QC
-        expand(os.path.join(QC_DIR, "post_{sample}_qc.html"),            sample=SAMPLES),
-        expand(os.path.join(QC_DIR, "post_{sample}_cell_qc_metrics.csv"),sample=SAMPLES),
+        expand(os.path.join(QC_POST_DIR, "post_{sample}_qc.html"),           sample=SAMPLES),
+        expand(os.path.join(QC_POST_DIR, "post_{sample}_cell_qc_metrics.csv"),sample=SAMPLES),
         # Cohort post-filtering report
-        os.path.join(QC_DIR, "post_cohort_qc_report.html"),
-        os.path.join(QC_DIR, "post_cohort_qc_metrics.csv"),
+        os.path.join(MULTIQC_POST_DIR, "post_cohort_qc_report.html"),
+        os.path.join(MULTIQC_POST_DIR, "post_cohort_qc_metrics.csv"),
         # SoupX (only produced when use_soupx: true)
         expand(os.path.join(SOUPX_DIR, "{sample}.h5ad"),                 sample=SAMPLES),
         # Final merged object
         os.path.join(MERGE_DIR, "sc.h5ad"),
         *([os.path.join(HARMONY_DIR, "sc.h5ad"),
-           os.path.join(HARMONY_DIR, "sc_harmony.pdf")] if RUN_HARMONY else []),
+           os.path.join(os.path.dirname(HARMONY_DIR), "figures", "sc_harmony.pdf")] if RUN_HARMONY else []),
         os.path.join(CLUSTERING_DIR, "files", "sc.h5ad"),
         os.path.join(CELLTYPIST_DIR, "sc.h5ad"),

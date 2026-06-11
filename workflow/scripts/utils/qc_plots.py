@@ -21,7 +21,7 @@ Multi-sample / cohort (called by 02_multisample_report.py):
 NOTE on merged_df:
     One row per CELL (not per sample). Columns include all qc metrics
     from save_qc_metrics() plus 'stage' and, if metadata was joined,
-    'patient', 'timepoint', 'cells', 'response'.
+    'patient', 'timepoint', 'fraction', 'response'.
     Barplot errorbar="se" therefore shows SE across cells within a sample,
     NOT across biological replicates — that is intentional for QC purposes.
 ────────────────────────────────────────────────────────────────
@@ -253,8 +253,8 @@ def fig_cohort_bar_plots(merged_df: pd.DataFrame) -> list:
     Returns: list of plt.Figure
     """
     figures = []
-    color_by = "cells" if "cells" in merged_df.columns else "sample_id"
-    palette  = CELLS_COLORS if color_by == "cells" else "tab10"
+    color_by = "fraction" if "fraction" in merged_df.columns else "sample_id"
+    palette  = CELLS_COLORS if color_by == "fraction" else "tab10"
 
     bar_metrics = [
         ("total_counts",      "Mean Total Counts (UMIs) per Sample", "Mean Total Counts"),
@@ -284,7 +284,7 @@ def fig_cohort_bar_plots(merged_df: pd.DataFrame) -> list:
         # Remove seaborn's auto legend and replace with clean manual one
         if ax.legend_:
             ax.legend_.remove()
-        if color_by == "cells":
+        if color_by == "fraction":
             handles = [mpatches.Patch(color=v, label=k) for k, v in CELLS_COLORS.items()]
             ax.legend(handles=handles, title="Cell fraction", frameon=False, fontsize=9)
 
@@ -371,8 +371,8 @@ def fig_cohort_violins(merged_df: pd.DataFrame) -> list:
         ("pct_counts_mt",     "% MT Counts"),
         ("pct_counts_ribo",   "% Ribo Counts"),
     ]
-    color_by = "cells" if "cells" in merged_df.columns else "sample_id"
-    palette  = CELLS_COLORS if color_by == "cells" else "tab10"
+    color_by = "fraction" if "fraction" in merged_df.columns else "sample_id"
+    palette  = CELLS_COLORS if color_by == "fraction" else "tab10"
     sample_order = sorted(merged_df["sample_id"].unique())
     figures = []
 
@@ -398,7 +398,7 @@ def fig_cohort_violins(merged_df: pd.DataFrame) -> list:
         ax.set_ylabel(label)
         ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", fontsize=8)
 
-        if color_by == "cells":
+        if color_by == "fraction":
             handles = [mpatches.Patch(color=v, label=k) for k, v in CELLS_COLORS.items()]
             ax.legend(handles=handles, title="Cell fraction", frameon=False, fontsize=9)
 
@@ -414,20 +414,20 @@ def fig_metadata_breakdown(merged_df: pd.DataFrame) -> plt.Figure | None:
     Left:  N cells per sample, stacked by cell fraction (epi_stroma / immune).
     Right: N cells per patient × timepoint, stacked by cell fraction.
 
-    Returns None if 'cells' column is absent.
+    Returns None if 'fraction' column is absent.
     """
-    if "cells" not in merged_df.columns:
+    if "fraction" not in merged_df.columns:
         return None
 
     # One row per cell in merged_df; count occurrences
     sample_order = sorted(merged_df["sample_id"].unique())
-    cell_counts  = (merged_df.groupby(["sample_id", "cells"])
+    cell_counts  = (merged_df.groupby(["sample_id", "fraction"])
                              .size().reset_index(name="n_cells"))
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 5), constrained_layout=True)
 
     # Left — per sample
-    pivot = (cell_counts.pivot(index="sample_id", columns="cells", values="n_cells")
+    pivot = (cell_counts.pivot(index="sample_id", columns="fraction", values="n_cells")
                         .fillna(0)
                         .reindex(sample_order))
     pivot.plot(kind="bar", stacked=True, ax=axes[0],
@@ -441,10 +441,10 @@ def fig_metadata_breakdown(merged_df: pd.DataFrame) -> plt.Figure | None:
 
     # Right — per patient × timepoint
     if {"timepoint", "patient"}.issubset(merged_df.columns):
-        tp = (merged_df.groupby(["patient", "timepoint", "cells"])
+        tp = (merged_df.groupby(["patient", "timepoint", "fraction"])
                        .size().reset_index(name="n_cells"))
         tp["pt_tp"] = tp["patient"] + "\n" + tp["timepoint"]
-        tp_piv = (tp.pivot_table(index="pt_tp", columns="cells",
+        tp_piv = (tp.pivot_table(index="pt_tp", columns="fraction",
                                   values="n_cells", aggfunc="sum")
                     .fillna(0))
         tp_piv.plot(kind="bar", stacked=True, ax=axes[1],

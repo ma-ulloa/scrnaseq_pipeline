@@ -4,9 +4,9 @@
 # Input:  per-sample count matrix — SoupX-corrected .h5ad if
 #         config["soupx"]["use_soupx"] is true, otherwise the
 #         original raw/filtered .h5 matrix
-# Output: results/qc/pre_<sample>_qc.html
-#         results/qc/pre_<sample>_qc.pdf
-#         results/qc/pre_<sample>_cell_qc_metrics.csv  ← includes outlier_* cols
+# Output: results/02_qc_pre/files/pre_<sample>_qc.html
+#         results/02_qc_pre/files/pre_<sample>_qc.pdf
+#         results/02_qc_pre/files/pre_<sample>_cell_qc_metrics.csv  ← includes outlier_* cols
 # ============================================================
 rule qc_report_pre:
     input:
@@ -14,9 +14,9 @@ rule qc_report_pre:
         samples = config["input"]["samples"],
         cfg      = "config/config.yaml",
     output:
-        html = os.path.join(QC_DIR, "pre_{sample}_qc.html"),
-        pdf  = os.path.join(QC_DIR, "pre_{sample}_qc.pdf"),
-        csv  = os.path.join(QC_DIR, "pre_{sample}_cell_qc_metrics.csv"),
+        html = os.path.join(QC_PRE_DIR, "pre_{sample}_qc.html"),
+        pdf  = os.path.join(QC_PRE_DIR, "pre_{sample}_qc.pdf"),
+        csv  = os.path.join(QC_PRE_DIR, "pre_{sample}_cell_qc_metrics.csv"),
     params:
         sample_id = "{sample}",
     conda:

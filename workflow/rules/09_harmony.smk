@@ -11,7 +11,7 @@ rule harmony:
         h5ad = os.path.join(MERGE_DIR, "sc.h5ad")
     output:
         h5ad  = os.path.join(HARMONY_DIR, "sc.h5ad"),
-        plots = os.path.join(HARMONY_DIR, "sc_harmony.pdf")
+        plots = os.path.join(os.path.dirname(HARMONY_DIR), "figures", "sc_harmony.pdf")
     params:
         integration_keys = lambda wc: " ".join(config["harmony"]["integration_keys"]),
         n_pcs            = config["harmony"]["n_pcs"]

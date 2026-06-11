@@ -10,9 +10,9 @@ rule qc_report_post:
         samples = config["input"]["samples"],
         cfg      = "config/config.yaml",
     output:
-        html = os.path.join(QC_DIR, "post_{sample}_qc.html"),
-        pdf  = os.path.join(QC_DIR, "post_{sample}_qc.pdf"),
-        csv  = os.path.join(QC_DIR, "post_{sample}_cell_qc_metrics.csv"),
+        html = os.path.join(QC_POST_DIR, "post_{sample}_qc.html"),
+        pdf  = os.path.join(QC_POST_DIR, "post_{sample}_qc.pdf"),
+        csv  = os.path.join(QC_POST_DIR, "post_{sample}_cell_qc_metrics.csv"),
     params:
         sample_id = "{sample}",
     conda:

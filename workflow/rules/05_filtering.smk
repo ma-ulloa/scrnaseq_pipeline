@@ -7,7 +7,7 @@
 rule filtering:
     input:
         h5       = qc_input,                    # same input as qc_report_pre
-        metrics  = os.path.join(QC_DIR, "pre_{sample}_cell_qc_metrics.csv"),
+        metrics  = os.path.join(QC_PRE_DIR, "pre_{sample}_cell_qc_metrics.csv"),
         samples = config["input"]["samples"],
         cfg      = "config/config.yaml",
     output:

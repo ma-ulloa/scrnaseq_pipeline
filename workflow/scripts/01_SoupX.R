@@ -43,15 +43,19 @@ no_clusters = as.logical(sample_row$no_clusters)
 cat("[INFO] Loading filtered matrix:", args$filtered, "\n")
 sobj = pp(args$filtered, args$sample_id)
 
+figures_dir   = file.path(dirname(dirname(args$output)), "figures")
+dir.create(figures_dir, recursive = TRUE, showWarnings = FALSE)
+sample_name   = sub("\\.h5ad$", "", basename(args$output))
+
 cat("[INFO] Computing clustering for SoupX\n")
-umap_pre_path = sub("\\.h5ad$", "_soupgenes_umap_pre.pdf", args$output)
+umap_pre_path = file.path(figures_dir, paste0(sample_name, "_soupgenes_umap_pre.pdf"))
 sobj = add_soup_groups(sobj, soupgenes, umap_pre_path)
 
 cat("[INFO] Running SoupX correction\n")
 sobj = make_soup(sobj, args$raw, soupgenes, fraction, args$apply_to_fractions, no_clusters)
 
 cat("[INFO] Plotting post-correction soupgene UMAP\n")
-umap_post_path  = sub("\\.h5ad$", "_soupgenes_umap_post.pdf", args$output)
+umap_post_path  = file.path(figures_dir, paste0(sample_name, "_soupgenes_umap_post.pdf"))
 sobj_post       = get_soup_groups(sobj)
 plot_soupgenes_umap(sobj_post, soupgenes, umap_post_path)
 
