@@ -107,6 +107,9 @@ def main():
         config = yaml.safe_load(f)
     pp_config = config["pp"]
 
+    plt.rcParams["font.family"]     = "sans-serif"
+    plt.rcParams["font.sans-serif"] = ["Nimbus Sans"]
+
     print(f"[INFO] {'='*55}")
     print(f"[INFO] Harmony integration | keys: {args.integration_keys}")
     print(f"[INFO] {'='*55}")

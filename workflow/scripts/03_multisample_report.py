@@ -27,6 +27,7 @@ import sys
 import warnings
 warnings.filterwarnings("ignore")
 
+import matplotlib.pyplot as plt
 import pandas as pd
 
 # ── make utils importable regardless of working directory ──────────────────
@@ -154,6 +155,9 @@ def _save_figures(figures: list, names: list, plot_dir: str):
 
 def main():
     args = parse_args()
+
+    plt.rcParams["font.family"]     = "sans-serif"
+    plt.rcParams["font.sans-serif"] = ["Nimbus Sans"]
 
     # 1. Merge per-sample CSVs
     master_df = merge_qc_metrics(args.input_files, args.stage)

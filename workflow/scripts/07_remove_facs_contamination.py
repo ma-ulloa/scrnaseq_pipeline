@@ -54,6 +54,8 @@ def main():
 
     sc.settings.figdir    = FIGURES
     sc.settings.verbosity = 1
+    plt.rcParams["font.family"]     = "sans-serif"
+    plt.rcParams["font.sans-serif"] = ["Nimbus Sans"]
 
     # ── Concatenate samples ────────────────────────────────────────────────
     adata  = sc.read_h5ad(args.input)

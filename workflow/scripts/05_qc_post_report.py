@@ -26,6 +26,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import yaml
+import matplotlib.pyplot as plt
 import scanpy as sc
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -65,6 +66,9 @@ def main():
         config = yaml.safe_load(f)
 
     n_mads = config.get("qc_thresholds", {}).get("n_mads", 3)
+
+    plt.rcParams["font.family"]     = "sans-serif"
+    plt.rcParams["font.sans-serif"] = ["Nimbus Sans"]
 
     # ── Load filtered data ────────────────────────────────────────────────────
     adata = load_data(args.input)
