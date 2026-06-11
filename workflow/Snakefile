@@ -16,6 +16,7 @@ QC_DIR         = config["output"]["qc_dir"]
 FILT_DIR       = config["output"]["filtered_dir"]
 SOUPX_DIR      = config["output"]["soupx_dir"]
 MERGE_DIR      = config["output"]["merge_dir"]
+FACS_DIR       = config["output"]["facs_dir"]
 HARMONY_DIR    = config["output"]["harmony_dir"]
 CLUSTERING_DIR = config["output"]["clustering_dir"]
 USE_SOUPX      = config["soupx"]["use_soupx"]
@@ -57,6 +58,7 @@ include: "rules/multiqc_post.smk"
 include: "rules/filtering.smk"        
 include: "rules/qc_post.smk"          
 include: "rules/merge.smk"
+include: "rules/remove_facs_contamination.smk"
 include: "rules/harmony.smk"
 include: "rules/clustering.smk"
 

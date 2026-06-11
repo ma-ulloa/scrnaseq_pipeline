@@ -17,9 +17,10 @@ output:
   qc_dir:         "results/qc/"
   filtered_dir:   "results/filtered/"
   soupx_dir:      "results/01_soupx/files"
-  merge_dir:      "results/03_merge_adatas/files"
-  harmony_dir:    "results/06_harmony/files"
-  clustering_dir: "results/07_clustering"
+  merge_dir:      "results/06_merge_adatas/files"
+  facs_dir:       "results/07_remove_facs_contamination/files"
+  harmony_dir:    "results/08_harmony/files"
+  clustering_dir: "results/09_clustering"
 
 #  QC Thresholds 
 qc_thresholds:
@@ -66,3 +67,6 @@ clustering:
   resolution_test: [.1,.2,.3,.4,.5,.6,.7,.8,0.9,1]
   seed: 42
   marker_file: "config/markers.csv"   # two columns: gene, cell_state
+
+# remove facs contamination
+non_sorted_flag: "Non-sorted"
