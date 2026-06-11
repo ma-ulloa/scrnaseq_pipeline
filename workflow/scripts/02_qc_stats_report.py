@@ -33,6 +33,9 @@ from utils.qc_metrics import (
     compute_qc_metrics,
     thresholds_from_mad,
     add_outlier_flags,
+    get_sample_thresholds,
+    compute_outlier_flags,
+    resolve_display_thresholds,
     save_qc_metrics,
 )
 from utils.qc_plots import (
@@ -67,8 +70,6 @@ def main():
     with open(args.cfg) as f:
         config = yaml.safe_load(f)
 
-    n_mads = config.get("qc_thresholds", {}).get("n_mads", 3)
-
     plt.rcParams["font.family"]     = "sans-serif"
     plt.rcParams["font.sans-serif"] = ["Nimbus Sans"]
 
@@ -77,25 +78,39 @@ def main():
     adata = attach_metadata(adata, args.samples, args.sample_id)
     adata = compute_qc_metrics(adata, species=config.get("species"))
 
-    # Write outlier flags for every MAD 1-5 into adata.obs (and later the CSV)
+    # Per-sample thresholds from samples.csv
+    sample_thr = get_sample_thresholds(args.samples, args.sample_id)
+
+    # Compute the actual outlier flag used for filtering
+    adata = compute_outlier_flags(adata, sample_thr)
+
+    # Also write per-MAD flags for the sensitivity diagnostic plots
     adata = add_outlier_flags(adata, mad_values=[1, 2, 3, 4, 5])
 
-    # Thresholds at the configured MAD — used for histogram annotation lines
-    thresholds = thresholds_from_mad(adata, n_mads)
+    # Effective threshold values for histogram annotation lines
+    display_thr = resolve_display_thresholds(adata, sample_thr)
+
+    # Pick a highlight MAD for the sensitivity plot (first MAD setting found, or 3)
+    highlight_mad = next(
+        (sample_thr[k] for k in ("mad_genes_lower", "mad_counts_lower", "mad_mt")
+         if sample_thr.get(k) is not None),
+        3,
+    )
 
     # ── Figures ───────────────────────────────────────────────────────────────
     figures = [
         # Standard QC plots
-        fig_summary_table(adata, args.sample_id, thresholds),
+        fig_summary_table(adata, args.sample_id, display_thr),
         fig_violin(adata, args.sample_id),
         fig_scatter(adata, args.sample_id),
         fig_histogram_genes(adata, args.sample_id,
-                            thresholds["min_genes"], thresholds["max_genes"]),
-        fig_histogram_mt(adata, args.sample_id, thresholds["max_pct_mt"]),
+                            display_thr.get("min_genes"),
+                            display_thr.get("max_genes")),
+        fig_histogram_mt(adata, args.sample_id, display_thr.get("max_pct_mt")),
         fig_mt_decay_curve(adata, args.sample_id),
-        # MAD 
-        fig_mad_retention_curve(adata, args.sample_id, highlight_mad=n_mads),
-        fig_mad_sensitivity_table(adata, args.sample_id, highlight_mad=n_mads),
+        # MAD sensitivity (diagnostic only — actual filter uses per-sample thresholds)
+        fig_mad_retention_curve(adata, args.sample_id, highlight_mad=highlight_mad),
+        fig_mad_sensitivity_table(adata, args.sample_id, highlight_mad=highlight_mad),
     ]
 
     # ── CSV ───────────────────────────────────────────────────────────────────
@@ -113,7 +128,7 @@ def main():
         figures=figures,
         sample_id=args.sample_id,
         stage="pre",
-        thresholds=thresholds,
+        thresholds=display_thr,
         n_cells=adata.n_obs,
     )
     with open(args.output, "w") as f:

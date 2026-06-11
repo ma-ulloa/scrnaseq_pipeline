@@ -72,6 +72,10 @@ def parse_args():
         "--stage", required=True, choices=["pre", "post"],
         help="Pipeline stage — controls report header colour"
     )
+    p.add_argument(
+        "--color_by", nargs="+", default=["fraction"],
+        help="Metadata column(s) to use for plot colouring (e.g. fraction sex response_type)"
+    )
     return p.parse_args()
 
 
@@ -174,20 +178,15 @@ def main():
     print(f"[INFO] Master CSV saved: {args.output_csv}")
 
     # 4. Generate figures
-    bar_figs      = fig_cohort_bar_plots(master_df)
-    scatter_figs  = fig_cohort_scatters(master_df)
-    violin_figs   = fig_cohort_violins(master_df)
-    meta_fig      = fig_metadata_breakdown(master_df)
+    bar_figs,    bar_names    = fig_cohort_bar_plots(master_df, args.color_by)
+    scatter_figs              = fig_cohort_scatters(master_df)
+    violin_figs, violin_names = fig_cohort_violins(master_df, args.color_by)
+    meta_fig                  = fig_metadata_breakdown(master_df)
 
-    # Build named list — violins and bar plots are per-metric
-    bar_names     = ["bar_total_counts", "bar_n_genes", "bar_pct_mt", "bar_pct_ribo"]
     scatter_names = ["scatter_counts_vs_genes", "scatter_counts_vs_mt"]
-    violin_names  = ["violin_n_genes", "violin_total_counts", "violin_pct_mt", "violin_pct_ribo"]
 
     all_figures = bar_figs + scatter_figs + violin_figs
-    all_names   = (bar_names[:len(bar_figs)]
-                   + scatter_names[:len(scatter_figs)]
-                   + violin_names[:len(violin_figs)])
+    all_names   = bar_names + scatter_names[:len(scatter_figs)] + violin_names
 
     if meta_fig is not None:
         all_figures.append(meta_fig)

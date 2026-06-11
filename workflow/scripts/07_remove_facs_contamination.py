@@ -25,6 +25,7 @@ Outputs
 import argparse
 import os
 import anndata as ad
+import matplotlib.pyplot as plt
 import pandas as pd
 import scanpy as sc
 
@@ -39,6 +40,8 @@ def parse_args():
     p.add_argument("--resolution", type=float, default=1.5,  help="Leiden resolution for contamination clustering (default: 1.5)")
     p.add_argument("--species" , required=True,type=str,help="Species the data was obtained from"),
     p.add_argument("--non_sorted_flag", required=True, help="How cells coming from non-FACS sorted samples are specified in the sample file")
+    p.add_argument("--immune_label",    required=True, help="Value of 'fraction' column for the immune (CD45+) sort")
+    p.add_argument("--epidn_label",     required=True, help="Value of 'fraction' column for the epithelial/double-negative sort")
     return p.parse_args()
 
 
@@ -71,16 +74,16 @@ def main():
         epi_marker    = "Epcam"        
     
     epcam_in_immune = (
-        (adata.obs["fraction"] == "Immune") &
+        (adata.obs["fraction"] == args.immune_label) &
         (adata[:, epi_marker].X.toarray().ravel() > 0)
     )
     ptprc_in_epidn = (
-        (adata.obs["fraction"] == "EPI+DN") &
+        (adata.obs["fraction"] == args.epidn_label) &
         (adata[:, immune_marker].X.toarray().ravel() > 0)
     )
 
-    print(f"[INFO] Removing {epcam_in_immune.sum():,} Epcam+ cells from Immune fraction")
-    print(f"[INFO] Removing {ptprc_in_epidn.sum():,} Ptprc+ cells from EPI+DN fraction")
+    print(f"[INFO] Removing {epcam_in_immune.sum():,} {epi_marker}+ cells from {args.immune_label} fraction")
+    print(f"[INFO] Removing {ptprc_in_epidn.sum():,} {immune_marker}+ cells from {args.epidn_label} fraction")
 
     adata = adata[~(epcam_in_immune | ptprc_in_epidn)].copy()
 
@@ -98,7 +101,7 @@ def main():
 
     sc.pl.umap(
         adata,
-        color=["Epcam", "Ptprc", "fraction", "sample_id"],
+        color=[epi_marker, immune_marker, "fraction", "sample_id"],
         ncols=2,
         save="_markers_and_fraction.pdf",
     )
@@ -124,9 +127,8 @@ def main():
     sc.pl.rank_genes_groups(adata, n_genes=20, save="_leiden_contam.pdf")
 
     # ── Step 3: Remove minority-fraction cells per cluster ─────────────────
-    # "Non-sorted" cells are always kept regardless of cluster composition.
-    NS_LABEL  = "Non-sorted"
-    sorted_mask = adata.obs["fraction"] != NS_LABEL
+    # Non-sorted cells are always kept regardless of cluster composition.
+    sorted_mask = adata.obs["fraction"] != args.non_sorted_flag
 
     # Crosstab computed only on sorted cells to find the dominant fraction per cluster
     crosstab = pd.crosstab(

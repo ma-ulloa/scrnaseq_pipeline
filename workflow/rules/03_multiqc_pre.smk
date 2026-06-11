@@ -8,6 +8,8 @@ rule multiqc_pre:
         html     = os.path.join(MULTIQC_PRE_DIR, "pre_cohort_qc_report.html"),
         pdf      = os.path.join(MULTIQC_PRE_DIR, "pre_cohort_qc_report.pdf"),
         plot_dir = directory(os.path.join(os.path.dirname(MULTIQC_PRE_DIR), "figures")),
+    params:
+        color_by = lambda wc: " ".join(config["qc_plots"]["color_by"]),
     conda:
         "/srv/data/users/shared_conda_alejandra_martin/scanpy-env"
     log:
@@ -21,5 +23,6 @@ rule multiqc_pre:
             --plot_dir    {output.plot_dir}    \
             --output_html {output.html}        \
             --stage       pre                  \
+            --color_by    {params.color_by}    \
         > {log} 2>&1
         """

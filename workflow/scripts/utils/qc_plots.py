@@ -13,10 +13,10 @@ Per-sample (called by 01_qc_stats_report.py):
     fig_mt_decay_curve(adata, sample_id)
 
 Multi-sample / cohort (called by 02_multisample_report.py):
-    fig_cohort_bar_plots(merged_df)   → list[Figure]
-    fig_cohort_scatters(merged_df)    → list[Figure]
-    fig_cohort_violins(merged_df)     → list[Figure]
-    fig_metadata_breakdown(merged_df) → Figure
+    fig_cohort_bar_plots(merged_df, color_cols) → (list[Figure], list[str])
+    fig_cohort_scatters(merged_df)              → list[Figure]
+    fig_cohort_violins(merged_df, color_cols)   → (list[Figure], list[str])
+    fig_metadata_breakdown(merged_df)           → Figure
 
 NOTE on merged_df:
     One row per CELL (not per sample). Columns include all qc metrics
@@ -60,6 +60,13 @@ CELLS_COLORS    = {"EPI+DN": "#9FCBAD", "IMMUNE": "#4A4466"}
 def fig_summary_table(adata: sc.AnnData, sample_id: str, thresholds: dict) -> plt.Figure:
     """Clean summary statistics table for a single sample."""
     obs = adata.obs
+
+    def _count_gt(col, thr):
+        return f"{(obs[col] > thr).sum():,}" if thr is not None else "—"
+
+    def _count_lt(col, thr):
+        return f"{(obs[col] < thr).sum():,}" if thr is not None else "—"
+
     stats = {
         "Metric": [
             "Total cells", "Total genes",
@@ -73,9 +80,9 @@ def fig_summary_table(adata: sc.AnnData, sample_id: str, thresholds: dict) -> pl
             f"{obs['total_counts'].median():.0f}",
             f"{obs['pct_counts_mt'].median():.2f}%",
             f"{obs['pct_counts_ribo'].median():.2f}%",
-            f"{(obs['n_genes_by_counts'] > thresholds['max_genes']).sum():,}",
-            f"{(obs['n_genes_by_counts'] < thresholds['min_genes']).sum():,}",
-            f"{(obs['pct_counts_mt'] > thresholds['max_pct_mt']).sum():,}",
+            _count_gt("n_genes_by_counts", thresholds.get("max_genes")),
+            _count_lt("n_genes_by_counts", thresholds.get("min_genes")),
+            _count_gt("pct_counts_mt",     thresholds.get("max_pct_mt")),
         ],
     }
     df = pd.DataFrame(stats)
@@ -159,13 +166,15 @@ def fig_scatter(adata: sc.AnnData, sample_id: str) -> plt.Figure:
 
 
 def fig_histogram_genes(adata: sc.AnnData, sample_id: str,
-                         min_genes: int, max_genes: int) -> plt.Figure:
-    """N Genes histogram with MAD-derived threshold lines."""
+                         min_genes, max_genes) -> plt.Figure:
+    """N Genes histogram with threshold annotation lines (None = no line)."""
     fig, ax = plt.subplots(figsize=(6, 4))
     sns.histplot(data=adata.obs, x="n_genes_by_counts", bins=50, ax=ax,
                  color=sns.color_palette("Set2")[0], kde=False)
-    ax.axvline(min_genes, color="crimson",    linestyle="--", label=f"Min: {min_genes}")
-    ax.axvline(max_genes, color="darkorange", linestyle="--", label=f"Max: {max_genes}")
+    if min_genes is not None:
+        ax.axvline(min_genes, color="crimson",    linestyle="--", label=f"Min: {min_genes}")
+    if max_genes is not None:
+        ax.axvline(max_genes, color="darkorange", linestyle="--", label=f"Max: {max_genes}")
     ax.set_xlabel("N Genes")
     ax.set_ylabel("Cell Count")
     ax.set_title(f"N Genes Distribution — {sample_id}")
@@ -174,14 +183,15 @@ def fig_histogram_genes(adata: sc.AnnData, sample_id: str,
     return fig
 
 
-def fig_histogram_mt(adata: sc.AnnData, sample_id: str, max_pct_mt: float) -> plt.Figure:
-    """% MT histogram with KDE and threshold line."""
+def fig_histogram_mt(adata: sc.AnnData, sample_id: str, max_pct_mt) -> plt.Figure:
+    """% MT histogram with KDE and threshold line (None = no line)."""
     fig, ax = plt.subplots(figsize=(6, 4))
     sns.histplot(data=adata.obs, x="pct_counts_mt", bins=50, ax=ax,
                  color=sns.color_palette("Set2")[2], kde=True,
                  kde_kws={"bw_adjust": 1.5})
-    ax.axvline(max_pct_mt, color="crimson", linestyle="--",
-               linewidth=1.5, label=f"Threshold: {max_pct_mt}%")
+    if max_pct_mt is not None:
+        ax.axvline(max_pct_mt, color="crimson", linestyle="--",
+                   linewidth=1.5, label=f"Threshold: {max_pct_mt:.1f}%")
     ax.set_xlabel("% MT Counts")
     ax.set_ylabel("Cell Count")
     ax.set_title(f"% MT Counts Distribution — {sample_id}")
@@ -245,16 +255,15 @@ def fig_mt_decay_curve(adata: sc.AnnData, sample_id: str) -> plt.Figure:
 #  MULTI-SAMPLE
 # ══════════════════════════════════════════════════════════════════════════════
 
-def fig_cohort_bar_plots(merged_df: pd.DataFrame) -> list:
+def fig_cohort_bar_plots(merged_df: pd.DataFrame,
+                         color_cols: list | None = None) -> tuple[list, list]:
     """
     Bar plots comparing per-sample distributions across the cohort.
-    One figure per QC metric; bars coloured by cell fraction (epi_stroma / immune)
-    when 'cells' column is present, otherwise by sample_id.
-    Returns: list of plt.Figure
+    One figure per (QC metric × color column); colours from Set2 palette sized to n levels.
+    Returns: (figures, names) — matched lists
     """
-    figures = []
-    color_by = "fraction" if "fraction" in merged_df.columns else "sample_id"
-    palette  = CELLS_COLORS if color_by == "fraction" else "tab10"
+    if color_cols is None:
+        color_cols = ["fraction"] if "fraction" in merged_df.columns else ["sample_id"]
 
     bar_metrics = [
         ("total_counts",      "Mean Total Counts (UMIs) per Sample", "Mean Total Counts"),
@@ -262,41 +271,48 @@ def fig_cohort_bar_plots(merged_df: pd.DataFrame) -> list:
         ("pct_counts_mt",     "Mean Mitochondrial % per Sample",     "Mean MT %"),
         ("pct_counts_ribo",   "Mean Ribosomal % per Sample",         "Mean Ribo %"),
     ]
-
     sample_order = sorted(merged_df["sample_id"].unique())
+    figures, names = [], []
 
-    for col_name, title, ylabel in bar_metrics:
-        if col_name not in merged_df.columns:
+    for color_col in color_cols:
+        if color_col not in merged_df.columns:
+            print(f"[WARN] color_by column '{color_col}' not found in data, skipping.")
             continue
+        levels  = sorted(merged_df[color_col].dropna().astype(str).unique())
+        palette = dict(zip(levels, sns.color_palette("Set2", n_colors=len(levels))))
 
-        fig, ax = plt.subplots(figsize=(12, 6))
-        sns.barplot(
-            data=merged_df,
-            x="sample_id", y=col_name,
-            order=sample_order,
-            hue=color_by,
-            palette=palette,
-            dodge=False,
-            edgecolor="0.2",
-            ax=ax,
-        )
+        for col_name, title, ylabel in bar_metrics:
+            if col_name not in merged_df.columns:
+                continue
 
-        # Remove seaborn's auto legend and replace with clean manual one
-        if ax.legend_:
-            ax.legend_.remove()
-        if color_by == "fraction":
-            handles = [mpatches.Patch(color=v, label=k) for k, v in CELLS_COLORS.items()]
-            ax.legend(handles=handles, title="Cell fraction", frameon=False, fontsize=9)
+            fig, ax = plt.subplots(figsize=(12, 6))
+            sns.barplot(
+                data=merged_df,
+                x="sample_id", y=col_name,
+                order=sample_order,
+                hue=color_col,
+                palette=palette,
+                dodge=False,
+                edgecolor="0.2",
+                ax=ax,
+            )
+            if ax.legend_:
+                ax.legend_.remove()
+            handles = [mpatches.Patch(color=v, label=k) for k, v in palette.items()]
+            ax.legend(handles=handles,
+                      title=color_col.replace("_", " ").title(),
+                      frameon=False, fontsize=9)
 
-        ax.set_title(title, fontsize=14, fontweight="bold", pad=12)
-        ax.set_ylabel(ylabel, fontsize=11)
-        ax.set_xlabel("Sample ID", fontsize=11)
-        ax.tick_params(axis="x", rotation=45)
+            ax.set_title(f"{title} (by {color_col})", fontsize=14, fontweight="bold", pad=12)
+            ax.set_ylabel(ylabel, fontsize=11)
+            ax.set_xlabel("Sample ID", fontsize=11)
+            ax.tick_params(axis="x", rotation=45)
+            plt.tight_layout()
 
-        plt.tight_layout()
-        figures.append(fig)
+            figures.append(fig)
+            names.append(f"bar_{col_name}_{color_col}")
 
-    return figures
+    return figures, names
 
 
 def fig_cohort_scatters(merged_df: pd.DataFrame) -> list:
@@ -357,55 +373,63 @@ def fig_cohort_scatters(merged_df: pd.DataFrame) -> list:
     return figures
 
 
-def fig_cohort_violins(merged_df: pd.DataFrame) -> list:
+def fig_cohort_violins(merged_df: pd.DataFrame,
+                       color_cols: list | None = None) -> tuple[list, list]:
     """
     Per-metric violin plots with all samples on the x-axis.
-    Coloured by 'cells' metadata column (epi_stroma / immune) when available,
-    otherwise by sample_id.
-
-    Returns: list of plt.Figure (one per metric)
+    One figure per (metric × color column); colours from Set2 palette sized to n levels.
+    Returns: (figures, names) — matched lists
     """
+    if color_cols is None:
+        color_cols = ["fraction"] if "fraction" in merged_df.columns else ["sample_id"]
+
     metrics = [
         ("n_genes_by_counts", "N Genes / Cell"),
         ("total_counts",      "Total Counts (UMIs)"),
         ("pct_counts_mt",     "% MT Counts"),
         ("pct_counts_ribo",   "% Ribo Counts"),
     ]
-    color_by = "fraction" if "fraction" in merged_df.columns else "sample_id"
-    palette  = CELLS_COLORS if color_by == "fraction" else "tab10"
     sample_order = sorted(merged_df["sample_id"].unique())
-    figures = []
+    figures, names = [], []
 
-    for col, label in metrics:
-        if col not in merged_df.columns:
+    for color_col in color_cols:
+        if color_col not in merged_df.columns:
+            print(f"[WARN] color_by column '{color_col}' not found in data, skipping.")
             continue
-        fig, ax = plt.subplots(figsize=(max(10, len(sample_order) * 0.9), 5))
-        sns.violinplot(
-            data=merged_df,
-            x="sample_id", y=col,
-            order=sample_order,
-            hue=color_by,
-            palette=palette,
-            inner="quartile",
-            linewidth=0.7,
-            cut=0,
-            dodge=False,
-            legend=False,
-            ax=ax,
-        )
-        ax.set_title(f"{label} — All Samples", fontweight="bold")
-        ax.set_xlabel("")
-        ax.set_ylabel(label)
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", fontsize=8)
+        levels  = sorted(merged_df[color_col].dropna().astype(str).unique())
+        palette = dict(zip(levels, sns.color_palette("Set2", n_colors=len(levels))))
 
-        if color_by == "fraction":
-            handles = [mpatches.Patch(color=v, label=k) for k, v in CELLS_COLORS.items()]
-            ax.legend(handles=handles, title="Cell fraction", frameon=False, fontsize=9)
+        for col, label in metrics:
+            if col not in merged_df.columns:
+                continue
+            fig, ax = plt.subplots(figsize=(max(10, len(sample_order) * 0.9), 5))
+            sns.violinplot(
+                data=merged_df,
+                x="sample_id", y=col,
+                order=sample_order,
+                hue=color_col,
+                palette=palette,
+                inner="quartile",
+                linewidth=0.7,
+                cut=0,
+                dodge=False,
+                legend=False,
+                ax=ax,
+            )
+            ax.set_title(f"{label} — All Samples (by {color_col})", fontweight="bold")
+            ax.set_xlabel("")
+            ax.set_ylabel(label)
+            ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", fontsize=8)
+            handles = [mpatches.Patch(color=v, label=k) for k, v in palette.items()]
+            ax.legend(handles=handles,
+                      title=color_col.replace("_", " ").title(),
+                      frameon=False, fontsize=9)
+            plt.tight_layout()
 
-        plt.tight_layout()
-        figures.append(fig)
+            figures.append(fig)
+            names.append(f"violin_{col}_{color_col}")
 
-    return figures
+    return figures, names
 
 
 def fig_metadata_breakdown(merged_df: pd.DataFrame) -> plt.Figure | None:

@@ -1,28 +1,18 @@
 #!/usr/bin/env python3
 """
-03_filtering.py
+04_filtering.py
 ────────────────────────────────────────────────────────────────
-Filter a single sample using the outlier flags written by
-01_qc_report.py.
+Filter a single sample using per-sample QC thresholds from samples.csv.
 
-The outlier columns (outlier_1mad … outlier_5mad) are already in
-the per-cell CSV produced by 01_qc_report.py.  This script reads
-the chosen n_mads from config.yaml, selects the matching column,
-and filters the AnnData — no MAD maths here.
+Thresholds are read from the samples CSV columns:
+    mad_mt, mad_counts_lower, mad_counts_upper,
+    mad_genes_lower, mad_genes_upper,
+    threshold_mt_upper, threshold_counts_upper, threshold_counts_lower,
+    threshold_genes_lower, threshold_genes_upper, min_cells_per_gene
 
-Usage:
-    python 03_filtering.py \
-        --input     data/raw/sample.h5 \
-        --metrics   results/qc/pre_KS2204T1_2_cell_qc_metrics.csv \
-        --metadata  config/metadata.csv \
-        --cfg       config/config.yaml \
-        --sample_id KS2204T1_2 \
-        --output    results/filtered/KS2204T1_2_filtered.h5ad
-
-Filtering logic:
-    Keeps cells where outlier_{n_mads}mad == False.
-    If that column is absent (e.g. n_mads not in 1-5) the script
-    falls back to recomputing thresholds and exits with a warning.
+An empty cell in any column means that filter is not applied.
+MAD-based thresholds are computed on log1p-transformed values for
+genes and counts (back-transformed via expm1 for the final cutoff).
 ────────────────────────────────────────────────────────────────
 """
 
@@ -32,24 +22,24 @@ import sys
 import warnings
 warnings.filterwarnings("ignore")
 
-import numpy as np
 import pandas as pd
 import scanpy as sc
-import yaml
 
 sys.path.insert(0, os.path.dirname(__file__))
 from utils.io       import load_data, attach_metadata
-from utils.qc_metrics import compute_qc_metrics, thresholds_from_mad, add_outlier_flags
+from utils.qc_metrics import (
+    get_sample_thresholds,
+    compute_outlier_flags,
+)
 
 sc.settings.verbosity = 1
 
 
 def parse_args():
-    p = argparse.ArgumentParser(description="Filter single sample by MAD-derived thresholds")
+    p = argparse.ArgumentParser(description="Filter single sample by per-sample QC thresholds")
     p.add_argument("--input",     required=True, help="Count matrix (any supported format)")
-    p.add_argument("--metrics",   required=True, help="Per-cell QC metrics CSV from 01_qc_report.py")
-    p.add_argument("--samples",  required=True, help="Metadata CSV")
-    p.add_argument("--cfg",       required=True, help="config.yaml")
+    p.add_argument("--metrics",   required=True, help="Per-cell QC metrics CSV from 02_qc_stats_report.py")
+    p.add_argument("--samples",   required=True, help="Samples CSV containing per-sample threshold columns")
     p.add_argument("--sample_id", required=True, help="Sample ID")
     p.add_argument("--output",    required=True, help="Output .h5ad path")
     return p.parse_args()
@@ -58,57 +48,56 @@ def parse_args():
 def main():
     args = parse_args()
 
-    with open(args.cfg) as f:
-        config = yaml.safe_load(f)
-
-    n_mads = config.get("qc_thresholds", {}).get("n_mads", 3)
-    flag_col = f"outlier_{int(n_mads)}mad"
-
-    # ── Load AnnData ──────────────────────────────────────────────────────────
+    # ── Load AnnData and metadata ─────────────────────────────────────────────
     adata = load_data(args.input)
     adata = attach_metadata(adata, args.samples, args.sample_id)
 
-    # ── Attach pre-computed outlier flags from the QC metrics CSV ─────────────
+    # ── Attach QC metric values from pre-computed CSV ─────────────────────────
+    # (avoids re-running compute_qc_metrics; compute_outlier_flags needs these cols)
     metrics_df = pd.read_csv(args.metrics, index_col="cell_id")
 
-    outlier_cols = [c for c in metrics_df.columns if c.startswith("outlier_")]
-    if not outlier_cols:
-        raise ValueError(
-            f"No outlier_* columns found in {args.metrics}. "
-            "Re-run 01_qc_report.py to regenerate the metrics CSV."
+    metric_cols = [
+        "n_genes_by_counts", "log1p_n_genes_by_counts",
+        "total_counts",      "log1p_total_counts",
+        "pct_counts_mt",     "pct_counts_ribo",
+    ]
+    for col in metric_cols:
+        if col in metrics_df.columns:
+            adata.obs[col] = metrics_df.reindex(adata.obs_names)[col].values
+
+    missing = [c for c in metric_cols if c not in adata.obs.columns]
+    if missing:
+        sys.exit(
+            f"[ERROR] Required QC metric columns missing in {args.metrics}: {missing}\n"
+            "Re-run 02_qc_stats_report.py to regenerate the metrics CSV."
         )
 
-    if flag_col not in metrics_df.columns:
-        print(
-            f"[WARN] Column '{flag_col}' not found in metrics CSV "
-            f"(available: {outlier_cols}). "
-            f"Recomputing outlier flags for n_mads={n_mads}."
-        )
-        adata = compute_qc_metrics(adata)
-        adata = add_outlier_flags(adata, mad_values=[n_mads])
-    else:
-        # Align metrics to adata cell order and attach
-        shared_cells = adata.obs_names.intersection(metrics_df.index)
-        if len(shared_cells) < adata.n_obs:
-            print(
-                f"[WARN] {adata.n_obs - len(shared_cells)} cells in AnnData "
-                "not found in metrics CSV — they will be treated as outliers."
-            )
-        for col in outlier_cols:
-            adata.obs[col] = metrics_df.reindex(adata.obs_names)[col].fillna(True).values
+    # ── Read per-sample thresholds from samples.csv ───────────────────────────
+    thresholds = get_sample_thresholds(args.samples, args.sample_id)
+    active = {k: v for k, v in thresholds.items() if v is not None}
+    print(f"[INFO] Active thresholds for {args.sample_id}: {active}")
 
-    # ── Filter ────────────────────────────────────────────────────────────────
+    # ── Compute outlier flags ─────────────────────────────────────────────────
+    adata = compute_outlier_flags(adata, thresholds)
+
+    # ── Filter cells ──────────────────────────────────────────────────────────
     n_before = adata.n_obs
-    keep     = ~adata.obs[flag_col].values
-    adata    = adata[keep].copy()
+    adata    = adata[~adata.obs["outlier"]].copy()
     n_after  = adata.n_obs
-    n_removed = n_before - n_after
-
     print(
-        f"[INFO] Filtering with {flag_col}: "
-        f"{n_before:,} → {n_after:,} cells "
-        f"({n_removed:,} removed, {n_after/n_before*100:.1f}% retained)"
+        f"[INFO] Cell filter: {n_before:,} → {n_after:,} "
+        f"({n_before - n_after:,} removed, {n_after / n_before * 100:.1f}% retained)"
     )
+
+    # ── Filter genes ──────────────────────────────────────────────────────────
+    min_cells = thresholds.get("min_cells_per_gene")
+    if min_cells is not None:
+        n_genes_before = adata.n_vars
+        sc.pp.filter_genes(adata, min_cells=int(min_cells))
+        print(
+            f"[INFO] Gene filter (min_cells={int(min_cells)}): "
+            f"{n_genes_before:,} → {adata.n_vars:,} genes"
+        )
 
     # ── Write output ──────────────────────────────────────────────────────────
     os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)

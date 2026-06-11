@@ -12,9 +12,11 @@ rule remove_facs_contamination:
     output:
         h5ad = os.path.join(FACS_DIR, "sc.h5ad")
     params:
-        species        = config["species"],
+        species         = config["species"],
         non_sorted_flag = config["non_sorted_flag"],
-        seed           = config["clustering"]["seed"]
+        immune_label    = config["immune_label"],
+        epidn_label     = config["epidn_label"],
+        seed            = config["clustering"]["seed"]
     conda:
         "/srv/data/users/shared_conda_alejandra_martin/scanpy-env/"
     log:
@@ -26,6 +28,8 @@ rule remove_facs_contamination:
             --output          "{output.h5ad}"          \
             --species         "{params.species}"       \
             --non_sorted_flag "{params.non_sorted_flag}" \
+            --immune_label    "{params.immune_label}"  \
+            --epidn_label     "{params.epidn_label}"   \
             --seed            {params.seed}            \
         > {log} 2>&1
         """

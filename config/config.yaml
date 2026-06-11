@@ -23,14 +23,13 @@ output:
   clustering_dir:     "results/10_clustering/files"
   celltypist_dir:     "results/11_celltypist/files"
 
-#  QC Thresholds 
-qc_thresholds:
-  n_mads:             3
-  min_genes:          200   
-  max_genes:          6000  
-  min_counts:         500   
-  max_pct_mt:         20    
-  min_cells_per_gene: 3     
+# QC report plot settings
+qc_plots:
+  color_by:
+    - fraction
+    - sex
+    - response_type
+
 
 #  Doublet Detection 
 doublets:
@@ -72,6 +71,8 @@ clustering:
 
 # remove facs contamination
 non_sorted_flag: "Non-sorted"
+immune_label:    "IMMUNE"
+epidn_label:     "EPI+DN"
 
 # CellTypist annotation
 celltypist:

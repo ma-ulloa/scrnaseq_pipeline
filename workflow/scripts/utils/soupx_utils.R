@@ -77,10 +77,15 @@ make_soup = function(sobj, raw_path, soupgenes, fraction, apply_fractions, use_c
   sc  = SoupChannel(raw, sobj@assays$RNA$counts)
   sc  = setClusters(sc, sobj$soup_group)
 
-  cat(paste0("Runningusing clusters? ",use_clusters_soupx,"\n"))
-  useToEst = estimateNonExpressingCells(sc,
-                                        nonExpressedGeneList = list(IG = soupgenes),
-                                        clusters = use_clusters_soupx)
+  if (use_clusters_soupx == FALSE){
+    cat("Running without clusters (flagged in metadata)\n")
+    useToEst = estimateNonExpressingCells(sc,
+                                          nonExpressedGeneList = list(IG = soupgenes),
+                                          clusters = FALSE)
+  } else {
+    useToEst = estimateNonExpressingCells(sc,
+                                          nonExpressedGeneList = list(IG = soupgenes))
+  }
 
   sc  = calculateContaminationFraction(sc, list(IG = soupgenes),
                                        useToEst = useToEst, forceAccept = TRUE)
