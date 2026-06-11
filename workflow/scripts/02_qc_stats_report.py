@@ -71,7 +71,7 @@ def main():
     # ── Load and annotate ─────────────────────────────────────────────────────
     adata = load_data(args.input)
     adata = attach_metadata(adata, args.metadata, args.sample_id)
-    adata = compute_qc_metrics(adata, species=config.get(""))
+    adata = compute_qc_metrics(adata, species=config.get("species"))
 
     # Write outlier flags for every MAD 1-5 into adata.obs (and later the CSV)
     adata = add_outlier_flags(adata, mad_values=[1, 2, 3, 4, 5])

@@ -20,14 +20,14 @@ import scanpy as sc
 # ── Gene-name prefixes ────────────────────────────────────────────────────────
 # Human: MT-  |  Mouse: mt-  |  other conventions: MT_
 HUMAN_MT      = ("MT-", "MT_")
-MOUSE_MT      = ("mt-")
+MOUSE_MT      = ("mt-",)   
 HUMAN_RIBO    = ("RPS", "RPL")
 MOUSE_RIBO    = ("Rps", "Rpl")
 
 
 # ── Core computation ──────────────────────────────────────────────────────────
 
-def compute_qc_metrics(adata: sc.AnnData, species = str) -> sc.AnnData:
+def compute_qc_metrics(adata: sc.AnnData, species: str) -> sc.AnnData:
     """ Get metrics"""
 
     if species == "human":

@@ -248,8 +248,8 @@ def fig_mt_decay_curve(adata: sc.AnnData, sample_id: str) -> plt.Figure:
 def fig_cohort_bar_plots(merged_df: pd.DataFrame) -> list:
     """
     Bar plots comparing per-sample distributions across the cohort.
-    One figure per QC metric; bars coloured by pre/post stage when both present.
-
+    One figure per QC metric; bars coloured by cell fraction (epi_stroma / immune)
+    when 'cells' column is present, otherwise by sample_id.
     Returns: list of plt.Figure
     """
     figures = []
@@ -257,10 +257,10 @@ def fig_cohort_bar_plots(merged_df: pd.DataFrame) -> list:
     palette  = CELLS_COLORS if color_by == "cells" else "tab10"
 
     bar_metrics = [
-        ("total_counts",       "Mean Total Counts (UMIs) per Sample",   "Mean Total Counts"),
-        ("n_genes_by_counts",  "Mean Detected Genes per Sample",         "Mean Unique Genes"),
-        ("pct_counts_mt",      "Mean Mitochondrial % per Sample",        "Mean MT %"),
-        ("pct_counts_ribo",    "Mean Ribosomal % per Sample",            "Mean Ribo %"),
+        ("total_counts",      "Mean Total Counts (UMIs) per Sample", "Mean Total Counts"),
+        ("n_genes_by_counts", "Mean Detected Genes per Sample",      "Mean Unique Genes"),
+        ("pct_counts_mt",     "Mean Mitochondrial % per Sample",     "Mean MT %"),
+        ("pct_counts_ribo",   "Mean Ribosomal % per Sample",         "Mean Ribo %"),
     ]
 
     sample_order = sorted(merged_df["sample_id"].unique())
@@ -268,23 +268,31 @@ def fig_cohort_bar_plots(merged_df: pd.DataFrame) -> list:
     for col_name, title, ylabel in bar_metrics:
         if col_name not in merged_df.columns:
             continue
+
         fig, ax = plt.subplots(figsize=(12, 6))
         sns.barplot(
             data=merged_df,
             x="sample_id", y=col_name,
             order=sample_order,
             hue=color_by,
-            palette= palette,
+            palette=palette,
+            dodge=False,
             edgecolor="0.2",
             ax=ax,
         )
+
+        # Remove seaborn's auto legend and replace with clean manual one
+        if ax.legend_:
+            ax.legend_.remove()
+        if color_by == "cells":
+            handles = [mpatches.Patch(color=v, label=k) for k, v in CELLS_COLORS.items()]
+            ax.legend(handles=handles, title="Cell fraction", frameon=False, fontsize=9)
+
         ax.set_title(title, fontsize=14, fontweight="bold", pad=12)
         ax.set_ylabel(ylabel, fontsize=11)
         ax.set_xlabel("Sample ID", fontsize=11)
         ax.tick_params(axis="x", rotation=45)
-        if color_by == "cells":
-            handles = [mpatches.Patch(color=v, label=k) for k, v in CELLS_COLORS.items()]
-            ax.legend(handles=handles, title="Cell fraction", frameon=False, fontsize=9)
+
         plt.tight_layout()
         figures.append(fig)
 
