@@ -14,7 +14,7 @@ rule celltypist:
         h5ad = os.path.join(CELLTYPIST_DIR, "sc.h5ad")
     params:
         model      = _celltypist_model(config),
-        leiden_key = config["celltypist"].get("leiden_key", ""),
+        leiden_key = config["celltypist"].get("leiden_key") or "",
         basis      = "umap_harmony" if config["clustering"]["use_harmony"] else "umap_pca"
     conda:
         "/srv/data/users/shared_conda_alejandra_martin/scanpy-env/"

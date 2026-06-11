@@ -16,13 +16,13 @@ rule soupx:
     input:
         filtered  = sample_h5,
         raw       = sample_raw_h5,
-        soupgenes = "workflow/scripts/utils/soupgenes.txt",
+        soupgenes = config["soupx"]["soupgenes"],
         metadata  = config["input"]["metadata"],
     output:
         h5ad = "results/01_soupx/files/{sample}.h5ad",
     params:
         sample_id          = "{sample}",
-        apply_to_fractions = ["Immune"], # hardcoded for now
+        apply_to_fractions = lambda wc: " ".join(config["soupx"]["apply_to_fractions"]),
     conda:
         "/srv/data/users/shared_conda_alejandra_martin/pipelineR"
     log:
