@@ -11,7 +11,7 @@ source(here("workflow/scripts/utils/soupx_utils.R"))
 ################## ARGUMENTS ##################################
 ###############################################################
 
-parser = ArgumentParser(description = "Ambient RNA correction with SoupX — per sample")
+parser = ArgumentParser(description = "Ambient RNA correction with SoupX per sample")
 parser$add_argument("--filtered",   required = TRUE,
                     help = "Path to filtered_feature_bc_matrix.h5")
 parser$add_argument("--raw",        required = TRUE,
@@ -24,7 +24,7 @@ parser$add_argument("--sample_id",  required = TRUE,
                     help = "Sample ID to look up in metadata")
 parser$add_argument("--output",     required = TRUE,
                     help = "Output .h5ad path")
-parser$add_argument("--apply_to_cellss", required = TRUE, nargs = "+",
+parser$add_argument("--apply_to_fractions", required = TRUE, nargs = "+",
                     help = "cells(s) to apply SoupX to (e.g. Immune All). Samples not in this list are returned uncorrected.")
 args = parser$parse_args()
 

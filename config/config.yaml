@@ -6,11 +6,8 @@ species: "human"
 
 #  INPUT 
 input:
-  # Sample sheet mapping sample IDs to their paths
+  # Sample sheet mapping sample IDs paths and metadata
   sample_sheet: "config/samples.csv"
-
-  # Experimental metadata (conditions, batches, etc.) for downstream analysis
-  metadata: "config/metadata.csv"
 
 #  OUTPUT
 output:
@@ -20,7 +17,8 @@ output:
   merge_dir:      "results/06_merge_adatas/files"
   facs_dir:       "results/07_remove_facs_contamination/files"
   harmony_dir:    "results/08_harmony/files"
-  clustering_dir: "results/09_clustering"
+  clustering_dir:  "results/09_clustering"
+  celltypist_dir:  "results/10_celltypist/files"
 
 #  QC Thresholds 
 qc_thresholds:
@@ -45,6 +43,8 @@ merge:
 # If false, they use the original count matrices from the sample sheet.
 soupx:
   use_soupx: false
+  soupgenes: "config/soupgenes.txt" # genes used as soup
+  apply_to_fractions: "Immune" # apply soupx to this fraction 
 
 # Preprocessing
 
@@ -70,3 +70,8 @@ clustering:
 
 # remove facs contamination
 non_sorted_flag: "Non-sorted"
+
+# CellTypist annotation
+celltypist:
+  model: null       # null → uses species default (mouse: Adult_Mouse_Gut, human: Cells_Intestinal_Tract)
+  leiden_key: null   # leiden key for crosstab vs celltypist labels
