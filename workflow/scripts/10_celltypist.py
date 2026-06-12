@@ -61,7 +61,7 @@ def main():
     sc.pp.log1p(adata)
 
     # ── Load model and annotate ───────────────────────────────────────────────
-    model = models.Model.load(model=args.model)
+    model = models.Model.load(model=f"{args.model}.pkl")
     print(f"[INFO] Loaded model: {args.model} ({len(model.cell_types)} cell types)")
 
     predictions = celltypist.annotate(adata, model=model, majority_voting=True)
