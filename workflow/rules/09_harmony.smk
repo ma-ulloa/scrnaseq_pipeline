@@ -8,7 +8,7 @@
 
 rule harmony:
     input:
-        h5ad = os.path.join(MERGE_DIR, "sc.h5ad")
+        h5ad = os.path.join(FACS_DIR, "sc.h5ad")
     output:
         h5ad  = os.path.join(HARMONY_DIR, "sc.h5ad"),
         plots = os.path.join(os.path.dirname(HARMONY_DIR), "figures", "sc_harmony.pdf")

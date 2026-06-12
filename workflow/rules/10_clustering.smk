@@ -19,7 +19,7 @@ rule clustering:
     conda:
         "/srv/data/users/shared_conda_alejandra_martin/scanpy-env/"
     log:
-        "workflow/logs/clustering/log.log"
+        "logs/clustering/log.log"
     shell:
         """
         python workflow/scripts/09_clustering.py \

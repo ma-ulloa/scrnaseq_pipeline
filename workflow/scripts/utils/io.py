@@ -45,6 +45,9 @@ def load_data(input_path: str) -> sc.AnnData:
     if ext == ".h5ad":
         print(f"[INFO] Detected .h5ad — loading AnnData: {input_path}")
         adata = sc.read_h5ad(input_path)
+        if adata.X is None and "counts" in adata.layers:
+            adata.X = adata.layers["counts"]
+            print("[INFO] X was None — promoted layers['counts'] to X")
 
     elif ext == ".h5":
         adata = _load_h5(input_path)

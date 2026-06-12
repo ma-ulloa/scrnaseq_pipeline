@@ -152,7 +152,7 @@ def main():
           f"(n_pcs={args.n_pcs}, thetas={thetas})")
     pcs         = adata.obsm["X_pca"][:, :args.n_pcs]
     harmony_res = hm.run_harmony(pcs, adata.obs, args.integration_keys, theta=thetas)
-    adata.obsm["X_pca_harmony"] = harmony_res.Z_corr.T
+    adata.obsm["X_pca_harmony"] = harmony_res.Z_corr
 
     # Clustering and UMAP — repeated on the Harmony embedding
     adata = cluster_and_embed(adata, use_rep="X_pca_harmony", cluster_key="leiden_harmony", umap_key="X_umap_harmony")

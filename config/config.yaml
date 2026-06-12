@@ -44,7 +44,7 @@ merge:
 # If true, QC and filtering use the SoupX-corrected .h5ad files as input.
 # If false, they use the original count matrices from the sample sheet.
 soupx:
-  use_soupx: false
+  use_soupx: true
   soupgenes: "config/soupgenes.txt" # genes used as soup
   apply_to_fractions: ["IMMUNE"] # apply soupx to this fraction 
 
@@ -52,7 +52,7 @@ soupx:
 pp:
   scale: false
   normalize: total_counts
-  factor: 10e4
+  factor: 10000
 
 # Harmony integration
 harmony:

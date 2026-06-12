@@ -59,7 +59,7 @@ def clustering_input(wildcards):
     """
     if config["clustering"]["use_harmony"]:
         return os.path.join(HARMONY_DIR, "sc.h5ad")
-    return os.path.join(MERGE_DIR, "sc.h5ad")
+    return os.path.join(FACS_DIR, "sc.h5ad")
 
 
 # Include rules
@@ -97,7 +97,9 @@ rule all:
         expand(os.path.join(SOUPX_DIR, "{sample}.h5ad"),                 sample=SAMPLES),
         # Final merged object
         os.path.join(MERGE_DIR, "sc.h5ad"),
+        os.path.join(FACS_DIR,"sc.h5ad"),
         *([os.path.join(HARMONY_DIR, "sc.h5ad"),
            os.path.join(os.path.dirname(HARMONY_DIR), "figures", "sc_harmony.pdf")] if RUN_HARMONY else []),
         os.path.join(CLUSTERING_DIR, "files", "sc.h5ad"),
         os.path.join(CELLTYPIST_DIR, "sc.h5ad"),
+        os.path.join(FACS_DIR,"sc.h5ad")
