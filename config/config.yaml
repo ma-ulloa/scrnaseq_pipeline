@@ -14,8 +14,8 @@ output:
   soupx_dir:          "results/01_soupx"
   qc_pre_dir:         "results/02_qc_pre"
   multiqc_pre_dir:    "results/03_multiqc_pre"
-  multiqc_post_dir:   "results/04_multiqc_post"
-  filtered_dir:       "results/05_filtering"
+  filtered_dir:       "results/04_filtering"
+  multiqc_post_dir:   "results/05_multiqc_post"
   qc_post_dir:        "results/06_qc_post"
   merge_dir:          "results/07_merge"
   facs_dir:           "results/08_remove_facs_contamination"
@@ -60,6 +60,7 @@ pp:
   scale: false
   normalize: total_counts
   factor: 10000
+  n_hvgs: 3000     # number of highly variable genes used for PCA
 
 # Harmony integration
 harmony:

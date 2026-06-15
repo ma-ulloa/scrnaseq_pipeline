@@ -12,7 +12,7 @@ Snakemake workflow to process scRNA-seq count matrices from QC to automated cell
 Corrects ambient RNA contamination in raw count matrices using SoupX. Runs per sample on the filtered and raw feature-barcode matrices. Optionally applied only to specific FACS fractions. Outputs a corrected `.h5ad` per sample. Can be skipped by setting `soupx.use_soupx: false`.
 
 ### Step 2 — Pre-filtering QC
-Generates a per-sample QC report (HTML + PDF) and a cell-level metrics CSV before any filtering. Computes standard QC metrics (number of genes, counts, mitochondrial fraction) and flags outlier cells using MAD-based thresholds. The outlier flags from this step are consumed directly by the filtering step.
+Generates a per-sample QC report (HTML + PDF) and a cell-level metrics CSV before any filtering. Computes standard QC metrics (number of genes, counts, mitochondrial fraction) and flags outlier cells using MAD-based and/or hard thresholds. The outlier flags from this step are consumed directly by the filtering step.
 
 ### Step 3 — Cohort pre-filtering QC summary
 Aggregates the per-sample pre-filtering metrics into a single cohort-level report (HTML + PDF + CSV). Produces comparative plots across all samples, colored by user-defined metadata columns.

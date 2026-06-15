@@ -126,9 +126,23 @@ def main():
     else:
         print("[INFO] Scaling disabled (config['pp']['scale'] = false)")
 
+    # HVG selection
+    n_hvgs = pp_config.get("n_hvgs", 3000)
+    sc.pp.highly_variable_genes(adata, n_top_genes=n_hvgs)
+
+    vdj_pattern = (
+        r"^IGH[VDJ]\d|^IGK[VJ]\d|^IGL[VJ]\d"
+        r"|^TRA[VJ]\d|^TRB[VDJ]\d|^TRG[VJ]\d|^TRD[VDJ]\d"
+        r"|^IG[HLK][VDJ]{1,2}.+"
+    )
+    vdj_mask = adata.var_names.str.contains(vdj_pattern, case=False, regex=True)
+    adata.var.loc[vdj_mask, "highly_variable"] = False
+    print(f"[INFO] {adata.var['highly_variable'].sum()} HVGs selected "
+          f"(VDJ genes excluded, requested {n_hvgs})")
+
     # PCA, clustering and UMAP — before integration
     print("[INFO] Computing PCA...")
-    sc.tl.pca(adata)
+    sc.tl.pca(adata, mask_var="highly_variable")
     adata = cluster_and_embed(adata, use_rep="X_pca", cluster_key="leiden", umap_key="X_umap_pca")
 
     figures = [
