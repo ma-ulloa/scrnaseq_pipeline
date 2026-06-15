@@ -31,6 +31,7 @@ from utils.io       import load_data, attach_metadata
 from utils.report   import build_html_report, export_pdf
 from utils.qc_metrics import (
     compute_qc_metrics,
+    run_scrublet,
     thresholds_from_mad,
     add_outlier_flags,
     get_sample_thresholds,
@@ -45,6 +46,8 @@ from utils.qc_plots import (
     fig_histogram_genes,
     fig_histogram_mt,
     fig_mt_decay_curve,
+    fig_doublet_umap,
+    fig_doublet_pie,
 )
 from utils.mad_plots import (
     fig_mad_retention_curve,
@@ -76,6 +79,12 @@ def main():
     # ── Load and annotate ─────────────────────────────────────────────────────
     adata = load_data(args.input)
     adata = attach_metadata(adata, args.samples, args.sample_id)
+
+    # Scrublet must run on raw counts before any normalisation
+    doublet_cfg = config.get("doublets", {})
+    if doublet_cfg.get("run_scrublet", False):
+        adata = run_scrublet(adata, expected_doublet_rate=doublet_cfg.get("expected_rate", 0.05))
+
     adata = compute_qc_metrics(adata, species=config.get("species"))
 
     # Per-sample thresholds from samples.csv
@@ -108,10 +117,14 @@ def main():
                             display_thr.get("max_genes")),
         fig_histogram_mt(adata, args.sample_id, display_thr.get("max_pct_mt")),
         fig_mt_decay_curve(adata, args.sample_id),
+        # Doublet detection (present only when run_scrublet: true)
+        fig_doublet_pie(adata, args.sample_id),
+        fig_doublet_umap(adata, args.sample_id),
         # MAD sensitivity (diagnostic only — actual filter uses per-sample thresholds)
         fig_mad_retention_curve(adata, args.sample_id, highlight_mad=highlight_mad),
         fig_mad_sensitivity_table(adata, args.sample_id, highlight_mad=highlight_mad),
     ]
+    figures = [f for f in figures if f is not None]
 
     # ── CSV ───────────────────────────────────────────────────────────────────
     # save_qc_metrics auto-includes all outlier_* columns from adata.obs

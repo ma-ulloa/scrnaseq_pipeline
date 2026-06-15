@@ -12,7 +12,8 @@ rule filtering:
     output:
         h5ad = os.path.join(FILT_DIR, "{sample}_filtered.h5ad"),
     params:
-        sample_id = "{sample}",
+        sample_id       = "{sample}",
+        remove_doublets = config["doublets"]["remove_doublets"],
     conda:
         "/srv/data/users/shared_conda_alejandra_martin/scanpy-env"
     log:
@@ -20,10 +21,11 @@ rule filtering:
     shell:
         """
         python workflow/scripts/04_filtering.py \
-            --input     "{input.h5}"           \
-            --metrics   "{input.metrics}"      \
-            --samples   "{input.samples}"      \
-            --sample_id {params.sample_id}     \
-            --output    "{output.h5ad}"        \
+            --input           "{input.h5}"                \
+            --metrics         "{input.metrics}"           \
+            --samples         "{input.samples}"           \
+            --sample_id       {params.sample_id}          \
+            --remove_doublets {params.remove_doublets}    \
+            --output          "{output.h5ad}"             \
         > {log} 2>&1
         """

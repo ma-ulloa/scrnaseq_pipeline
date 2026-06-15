@@ -40,13 +40,17 @@ def parse_args():
     p.add_argument("--input",     required=True, help="Count matrix (any supported format)")
     p.add_argument("--metrics",   required=True, help="Per-cell QC metrics CSV from 02_qc_stats_report.py")
     p.add_argument("--samples",   required=True, help="Samples CSV containing per-sample threshold columns")
-    p.add_argument("--sample_id", required=True, help="Sample ID")
-    p.add_argument("--output",    required=True, help="Output .h5ad path")
+    p.add_argument("--sample_id",       required=True, help="Sample ID")
+    p.add_argument("--remove_doublets", type=lambda x: str(x).lower() == "true",
+                   default=False, help="Remove predicted doublets (True/False)")
+    p.add_argument("--output",          required=True, help="Output .h5ad path")
     return p.parse_args()
 
 
 def main():
     args = parse_args()
+
+    remove_doublets = args.remove_doublets
 
     # ── Load AnnData and metadata ─────────────────────────────────────────────
     adata = load_data(args.input)
@@ -88,6 +92,28 @@ def main():
         f"[INFO] Cell filter: {n_before:,} → {n_after:,} "
         f"({n_before - n_after:,} removed, {n_after / n_before * 100:.1f}% retained)"
     )
+
+    # ── Doublet removal ───────────────────────────────────────────────────────
+    if remove_doublets:
+        if "predicted_doublet" in metrics_df.columns:
+            adata.obs["predicted_doublet"] = (
+                metrics_df.reindex(adata.obs_names)["predicted_doublet"]
+                .fillna(False)
+                .astype(bool)
+                .values
+            )
+            n_before = adata.n_obs
+            adata    = adata[~adata.obs["predicted_doublet"]].copy()
+            print(
+                f"[INFO] Doublet removal: {n_before:,} → {adata.n_obs:,} "
+                f"({n_before - adata.n_obs:,} doublets removed)"
+            )
+        else:
+            print(
+                "[WARN] remove_doublets=true but 'predicted_doublet' column is absent "
+                "from the metrics CSV — skipping doublet removal. "
+                "Re-run 02_qc_stats_report.py with run_scrublet: true."
+            )
 
     # ── Filter genes ──────────────────────────────────────────────────────────
     min_cells = thresholds.get("min_cells_per_gene")

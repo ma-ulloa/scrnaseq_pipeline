@@ -251,6 +251,86 @@ def fig_mt_decay_curve(adata: sc.AnnData, sample_id: str) -> plt.Figure:
     return fig
 
 
+def fig_doublet_umap(adata: sc.AnnData, sample_id: str) -> plt.Figure | None:
+    """
+    UMAP coloured by predicted doublet status (Scrublet).
+    Computes PCA/neighbors/UMAP on a normalised copy; does not modify adata.
+    Returns None if scrublet has not been run.
+    """
+    if "predicted_doublet" not in adata.obs.columns:
+        return None
+
+    try:
+        tmp = adata.copy()
+        sc.pp.normalize_total(tmp, target_sum=1e4)
+        sc.pp.log1p(tmp)
+        n_top = min(2000, tmp.n_vars)
+        sc.pp.highly_variable_genes(tmp, n_top_genes=n_top, flavor="seurat")
+        tmp = tmp[:, tmp.var["highly_variable"]].copy()
+        sc.pp.scale(tmp, max_value=10)
+        n_comps = min(30, tmp.n_obs - 1, tmp.n_vars - 1)
+        sc.pp.pca(tmp, n_comps=n_comps)
+        sc.pp.neighbors(tmp, n_pcs=min(20, n_comps))
+        sc.tl.umap(tmp)
+    except Exception as e:
+        print(f"[WARN] Doublet UMAP computation failed: {e}")
+        return None
+
+    coords = pd.DataFrame(
+        tmp.obsm["X_umap"], columns=["UMAP1", "UMAP2"], index=tmp.obs_names
+    )
+    coords["predicted_doublet"] = adata.obs.loc[tmp.obs_names, "predicted_doublet"]
+
+    singlet_mask = ~coords["predicted_doublet"].astype(bool)
+    doublet_mask =  coords["predicted_doublet"].astype(bool)
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    ax.scatter(
+        coords.loc[singlet_mask, "UMAP1"], coords.loc[singlet_mask, "UMAP2"],
+        c="#4C72B0", s=4, alpha=0.4, edgecolors="none",
+        label=f"Singlet ({singlet_mask.sum():,})",
+    )
+    ax.scatter(
+        coords.loc[doublet_mask, "UMAP1"], coords.loc[doublet_mask, "UMAP2"],
+        c="#DD4444", s=6, alpha=0.8, edgecolors="none",
+        label=f"Doublet ({doublet_mask.sum():,})",
+    )
+    ax.set_xlabel("UMAP 1")
+    ax.set_ylabel("UMAP 2")
+    ax.set_title(f"Doublet Detection — {sample_id}", fontweight="bold")
+    ax.legend(markerscale=3, frameon=False, fontsize=9)
+    plt.tight_layout()
+    return fig
+
+
+def fig_doublet_pie(adata: sc.AnnData, sample_id: str) -> plt.Figure | None:
+    """
+    Pie chart of predicted doublet proportion and absolute count.
+    Returns None if scrublet has not been run.
+    """
+    if "predicted_doublet" not in adata.obs.columns:
+        return None
+
+    n_doublets = int(adata.obs["predicted_doublet"].sum())
+    n_singlets  = adata.n_obs - n_doublets
+
+    labels = [
+        f"Singlets\n{n_singlets:,}  ({n_singlets / adata.n_obs * 100:.1f}%)",
+        f"Doublets\n{n_doublets:,}  ({n_doublets / adata.n_obs * 100:.1f}%)",
+    ]
+    fig, ax = plt.subplots(figsize=(5, 5))
+    ax.pie(
+        [n_singlets, n_doublets],
+        labels=labels,
+        colors=["#4C72B0", "#DD4444"],
+        startangle=90,
+        wedgeprops=dict(edgecolor="white", linewidth=1.5),
+    )
+    ax.set_title(f"Doublet Proportion — {sample_id}", fontweight="bold", pad=14)
+    plt.tight_layout()
+    return fig
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 #  MULTI-SAMPLE
 # ══════════════════════════════════════════════════════════════════════════════

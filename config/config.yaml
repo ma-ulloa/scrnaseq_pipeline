@@ -31,10 +31,11 @@ qc_plots:
     - response_type
 
 
-#  Doublet Detection 
+#  Doublet Detection
 doublets:
-  run_scrublet:  true
-  expected_rate: 0.05  
+  run_scrublet:    true
+  expected_rate:   0.05
+  remove_doublets: true   # if true, doublets are removed during the filter step
 
 # union or intersection of genes when merging
 merge:

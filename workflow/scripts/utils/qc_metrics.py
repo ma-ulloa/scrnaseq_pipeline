@@ -6,6 +6,7 @@ report scripts.
 
 MT_PREFIXES, RIBO_PREFIXES          — gene name prefix constants
 compute_qc_metrics(adata, species)  — flag MT/ribo genes, run sc.pp.calculate_qc_metrics
+run_scrublet(adata, rate)           — doublet detection via sc.pp.scrublet; adds doublet_score / predicted_doublet
 mad_bounds(series, n_mads)          — raw (unscaled) MAD lower/upper bounds
 thresholds_from_mad(adata, n)       — derive display thresholds at a given MAD (kept for sensitivity plots)
 add_outlier_flags(adata, mads)      — write per-MAD outlier columns to adata.obs (kept for MAD sensitivity plots)
@@ -44,6 +45,22 @@ THRESHOLD_COLS = [
 ]
 
 # ── Core computation ──────────────────────────────────────────────────────────
+
+def run_scrublet(adata: sc.AnnData, expected_doublet_rate: float = 0.05) -> sc.AnnData:
+    """
+    Run Scrublet doublet detection on raw counts via sc.pp.scrublet.
+    Adds 'doublet_score' and 'predicted_doublet' to adata.obs.
+    Must be called before any normalisation.
+    """
+    sc.pp.scrublet(adata, expected_doublet_rate=expected_doublet_rate)
+    n_doublets = int(adata.obs["predicted_doublet"].sum())
+    pct = n_doublets / adata.n_obs * 100
+    print(
+        f"[INFO] Scrublet: {n_doublets:,} predicted doublets "
+        f"out of {adata.n_obs:,} cells ({pct:.1f}%)"
+    )
+    return adata
+
 
 def compute_qc_metrics(adata: sc.AnnData, species: str) -> sc.AnnData:
     """ Get metrics"""
@@ -273,6 +290,8 @@ def save_qc_metrics(adata: sc.AnnData, sample_id: str) -> pd.DataFrame:
         "log1p_total_counts",
         "pct_counts_mt",
         "pct_counts_ribo",
+        "doublet_score",
+        "predicted_doublet",
     ]
     outlier_cols = sorted(
         [c for c in adata.obs.columns if c.startswith("outlier")]
