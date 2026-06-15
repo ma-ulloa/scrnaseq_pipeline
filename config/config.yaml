@@ -37,6 +37,12 @@ doublets:
   expected_rate:   0.05
   remove_doublets: true   # if true, doublets are removed during the filter step
 
+#  Gene filtering
+filter_genes:
+  remove_mt:     true   # remove mitochondrial genes
+  remove_ribo:   true   # remove ribosomal genes
+  remove_malat1: true   # remove MALAT1
+
 # union or intersection of genes when merging
 merge:
   join: "union"

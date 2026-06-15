@@ -14,6 +14,10 @@ rule filtering:
     params:
         sample_id       = "{sample}",
         remove_doublets = config["doublets"]["remove_doublets"],
+        remove_mt       = config["filter_genes"]["remove_mt"],
+        remove_ribo     = config["filter_genes"]["remove_ribo"],
+        remove_malat1   = config["filter_genes"]["remove_malat1"],
+        species         = config["species"],
     conda:
         "/srv/data/users/shared_conda_alejandra_martin/scanpy-env"
     log:
@@ -26,6 +30,10 @@ rule filtering:
             --samples         "{input.samples}"           \
             --sample_id       {params.sample_id}          \
             --remove_doublets {params.remove_doublets}    \
+            --remove_mt       {params.remove_mt}          \
+            --remove_ribo     {params.remove_ribo}        \
+            --remove_malat1   {params.remove_malat1}      \
+            --species         {params.species}            \
             --output          "{output.h5ad}"             \
         > {log} 2>&1
         """

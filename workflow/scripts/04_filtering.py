@@ -30,6 +30,8 @@ from utils.io       import load_data, attach_metadata
 from utils.qc_metrics import (
     get_sample_thresholds,
     compute_outlier_flags,
+    HUMAN_MT, MOUSE_MT,
+    HUMAN_RIBO, MOUSE_RIBO,
 )
 
 sc.settings.verbosity = 1
@@ -43,7 +45,14 @@ def parse_args():
     p.add_argument("--sample_id",       required=True, help="Sample ID")
     p.add_argument("--remove_doublets", type=lambda x: str(x).lower() == "true",
                    default=False, help="Remove predicted doublets (True/False)")
-    p.add_argument("--output",          required=True, help="Output .h5ad path")
+    p.add_argument("--remove_mt",      type=lambda x: str(x).lower() == "true",
+                   default=False, help="Remove mitochondrial genes (True/False)")
+    p.add_argument("--remove_ribo",    type=lambda x: str(x).lower() == "true",
+                   default=False, help="Remove ribosomal genes (True/False)")
+    p.add_argument("--remove_malat1",  type=lambda x: str(x).lower() == "true",
+                   default=False, help="Remove MALAT1 (True/False)")
+    p.add_argument("--species",        required=True, help="Species (human/mouse)")
+    p.add_argument("--output",         required=True, help="Output .h5ad path")
     return p.parse_args()
 
 
@@ -115,7 +124,7 @@ def main():
                 "Re-run 02_qc_stats_report.py with run_scrublet: true."
             )
 
-    # ── Filter genes ──────────────────────────────────────────────────────────
+    # ── Filter genes by min_cells ─────────────────────────────────────────────
     min_cells = thresholds.get("min_cells_per_gene")
     if min_cells is not None:
         n_genes_before = adata.n_vars
@@ -124,6 +133,26 @@ def main():
             f"[INFO] Gene filter (min_cells={int(min_cells)}): "
             f"{n_genes_before:,} → {adata.n_vars:,} genes"
         )
+
+    # ── Remove uninformative gene classes ─────────────────────────────────────
+    mt_prefixes   = HUMAN_MT   if args.species == "human" else MOUSE_MT
+    ribo_prefixes = HUMAN_RIBO if args.species == "human" else MOUSE_RIBO
+
+    if args.remove_mt:
+        mask = adata.var_names.str.startswith(mt_prefixes)
+        adata = adata[:, ~mask].copy()
+        print(f"[INFO] Removed {mask.sum()} mitochondrial genes → {adata.n_vars:,} genes remaining")
+
+    if args.remove_ribo:
+        mask = adata.var_names.str.startswith(ribo_prefixes)
+        adata = adata[:, ~mask].copy()
+        print(f"[INFO] Removed {mask.sum()} ribosomal genes → {adata.n_vars:,} genes remaining")
+
+    if args.remove_malat1:
+        mask = adata.var_names.str.upper() == "MALAT1"
+        if mask.any():
+            adata = adata[:, ~mask].copy()
+            print(f"[INFO] Removed MALAT1 → {adata.n_vars:,} genes remaining")
 
     # ── Write output ──────────────────────────────────────────────────────────
     os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
