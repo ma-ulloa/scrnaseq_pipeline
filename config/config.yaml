@@ -80,6 +80,7 @@ clustering:
 non_sorted_flag: "Non-sorted"
 immune_label:    "IMMUNE"
 epidn_label:     "EPI+DN"
+remove_clusters: []   # leiden_contam cluster IDs to drop entirely, e.g. [3, 7]
 
 # CellTypist annotation
 celltypist:

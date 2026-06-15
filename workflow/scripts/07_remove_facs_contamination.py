@@ -42,6 +42,7 @@ def parse_args():
     p.add_argument("--non_sorted_flag", required=True, help="How cells coming from non-FACS sorted samples are specified in the sample file")
     p.add_argument("--immune_label",    required=True, help="Value of 'fraction' column for the immune (CD45+) sort")
     p.add_argument("--epidn_label",     required=True, help="Value of 'fraction' column for the epithelial/double-negative sort")
+    p.add_argument("--remove_clusters", nargs="*", default=[], help="leiden_contam cluster IDs to drop entirely (e.g. 3 7)")
     return p.parse_args()
 
 
@@ -126,7 +127,15 @@ def main():
     sc.tl.rank_genes_groups(adata, groupby="leiden_contam", use_raw=False)
     sc.pl.rank_genes_groups(adata, n_genes=20, save="_leiden_contam.pdf")
 
-    # ── Step 3: Remove minority-fraction cells per cluster ─────────────────
+    # ── Step 3: Drop user-specified clusters entirely ──────────────────────
+    if args.remove_clusters:
+        to_drop = [str(c) for c in args.remove_clusters]
+        mask = adata.obs["leiden_contam"].isin(to_drop)
+        print(f"[INFO] Dropping clusters {to_drop}: {mask.sum():,} cells removed")
+        adata = adata[~mask].copy()
+        print(f"[INFO] Retained: {adata.n_obs:,} cells")
+
+    # ── Step 4: Remove minority-fraction cells per cluster ─────────────────
     # Non-sorted cells are always kept regardless of cluster composition.
     sorted_mask = adata.obs["fraction"] != args.non_sorted_flag
 

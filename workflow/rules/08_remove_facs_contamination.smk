@@ -12,11 +12,12 @@ rule remove_facs_contamination:
     output:
         h5ad = os.path.join(FACS_DIR, "files", "sc.h5ad")
     params:
-        species         = config["species"],
-        non_sorted_flag = config["non_sorted_flag"],
-        immune_label    = config["immune_label"],
-        epidn_label     = config["epidn_label"],
-        seed            = config["clustering"]["seed"]
+        species          = config["species"],
+        non_sorted_flag  = config["non_sorted_flag"],
+        immune_label     = config["immune_label"],
+        epidn_label      = config["epidn_label"],
+        seed             = config["clustering"]["seed"],
+        remove_clusters  = lambda wc: " ".join(str(c) for c in (config.get("remove_clusters") or []))
     conda:
         "/srv/data/users/shared_conda_alejandra_martin/scanpy-env/"
     log:
@@ -24,12 +25,13 @@ rule remove_facs_contamination:
     shell:
         """
         python workflow/scripts/07_remove_facs_contamination.py \
-            --input           "{input.h5ad}"           \
-            --output          "{output.h5ad}"          \
-            --species         "{params.species}"       \
+            --input           "{input.h5ad}"             \
+            --output          "{output.h5ad}"            \
+            --species         "{params.species}"         \
             --non_sorted_flag "{params.non_sorted_flag}" \
-            --immune_label    "{params.immune_label}"  \
-            --epidn_label     "{params.epidn_label}"   \
-            --seed            {params.seed}            \
+            --immune_label    "{params.immune_label}"    \
+            --epidn_label     "{params.epidn_label}"     \
+            --seed            {params.seed}              \
+            --remove_clusters {params.remove_clusters}   \
         > {log} 2>&1
         """
