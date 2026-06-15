@@ -55,12 +55,6 @@ Annotates cells automatically using CellTypist majority voting. Uses a species-a
 ```bash
 # With conda environments only (Mac or Linux without Apptainer)
 snakemake --use-conda --cores N
-
-# With container (Linux / HPC with Apptainer)
-snakemake --use-singularity --use-conda --cores N
-
-# Dry run to check the execution plan
-snakemake --use-conda -n
 ```
 
 ---
@@ -70,7 +64,7 @@ snakemake --use-conda -n
 | File | Description |
 |---|---|
 | `config/config.yaml` | Pipeline parameters (see below) |
-| `config/samples.csv` | Sample sheet with columns: `sample_id`, `path` |
+| `config/samples.csv` | Sample sheet with columns: `sample_id`, `path`, and QC thresholds (use example `samples.csv` file) |
 | `config/soupgenes.txt` | List of genes used as soup markers for SoupX |
 | `config/markers.csv` | Marker gene table with columns: `gene`, `cell_state` |
 
