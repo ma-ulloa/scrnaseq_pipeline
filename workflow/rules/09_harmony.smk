@@ -16,7 +16,7 @@ rule harmony:
         integration_keys = lambda wc: " ".join(config["harmony"]["integration_keys"]),
         n_pcs            = config["harmony"]["n_pcs"]
     conda:
-        "/srv/data/users/shared_conda_alejandra_martin/scanpy-env/"
+        "../envs/scanpy_env.yml"
     log:
         "logs/harmony/log.log"
     shell:

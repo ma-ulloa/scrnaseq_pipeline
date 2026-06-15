@@ -19,7 +19,7 @@ rule remove_facs_contamination:
         seed             = config["clustering"]["seed"],
         remove_clusters  = lambda wc: " ".join(str(c) for c in (config.get("remove_clusters") or []))
     conda:
-        "/srv/data/users/shared_conda_alejandra_martin/scanpy-env/"
+        "../envs/scanpy_env.yml"
     log:
         "logs/remove_facs_contamination/log.log"
     shell:

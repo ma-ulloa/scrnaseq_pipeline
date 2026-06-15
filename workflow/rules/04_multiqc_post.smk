@@ -11,7 +11,7 @@ rule multiqc_post:
     params:
         color_by = lambda wc: " ".join(config["qc_plots"]["color_by"]),
     conda:
-        "/srv/data/users/shared_conda_alejandra_martin/scanpy-env"
+        "../envs/scanpy_env.yml"
     log:
         "logs/qc/cohort_summary_post.log"
     shell:

@@ -19,7 +19,7 @@ rule filtering:
         remove_malat1   = config["filter_genes"]["remove_malat1"],
         species         = config["species"],
     conda:
-        "/srv/data/users/shared_conda_alejandra_martin/scanpy-env"
+        "../envs/scanpy_env.yml"
     log:
         "logs/filtering/{sample}.log"
     shell:

@@ -17,7 +17,7 @@ rule celltypist:
         leiden_key = config["celltypist"].get("leiden_key") or "",
         basis      = "umap_harmony" if config["clustering"]["use_harmony"] else "umap_pca"
     conda:
-        "/srv/data/users/shared_conda_alejandra_martin/scanpy-env/"
+        "../envs/scanpy_env.yml"
     log:
         "logs/celltypist/log.log"
     shell:

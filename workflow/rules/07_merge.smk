@@ -14,7 +14,7 @@ rule merge_adatas:
     params:
         join = config["merge"]["join"]
     conda:
-        "/srv/data/users/shared_conda_alejandra_martin/scanpy-env/"
+        "../envs/scanpy_env.yml"
     log:
         "logs/merge_adatas/log.log"
     shell:

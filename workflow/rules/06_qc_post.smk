@@ -16,7 +16,7 @@ rule qc_report_post:
     params:
         sample_id = "{sample}",
     conda:
-        "/srv/data/users/shared_conda_alejandra_martin/scanpy-env"
+        "../envs/scanpy_env.yml"
     log:
         "logs/qc/post_{sample}.log"
     shell:

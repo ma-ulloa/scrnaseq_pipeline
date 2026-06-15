@@ -24,7 +24,7 @@ rule soupx:
         sample_id          = "{sample}",
         apply_to_fractions = lambda wc: " ".join(config["soupx"]["apply_to_fractions"]),
     conda:
-        "/srv/data/users/shared_conda_alejandra_martin/pipelineR"
+        "../envs/pipelineR.yml"
     log:
         "logs/soupx/{sample}.log"
     shell:
