@@ -4,4 +4,4 @@ Snakemake workflow to process scRNA-seq matrices with associated metadata, from 
 
 The structure of the pipeline is the following:
 
-![dag]("rulegraph.png")
+![dag](rulegraph.png)
