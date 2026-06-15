@@ -8,10 +8,10 @@
 
 rule harmony:
     input:
-        h5ad = os.path.join(FACS_DIR, "sc.h5ad")
+        h5ad = os.path.join(FACS_DIR, "files", "sc.h5ad")
     output:
-        h5ad  = os.path.join(HARMONY_DIR, "sc.h5ad"),
-        plots = os.path.join(os.path.dirname(HARMONY_DIR), "figures", "sc_harmony.pdf")
+        h5ad  = os.path.join(HARMONY_DIR, "files", "sc.h5ad"),
+        plots = os.path.join(HARMONY_DIR, "figures", "sc_harmony.pdf")
     params:
         integration_keys = lambda wc: " ".join(config["harmony"]["integration_keys"]),
         n_pcs            = config["harmony"]["n_pcs"]

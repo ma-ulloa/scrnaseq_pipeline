@@ -47,7 +47,7 @@ def qc_input(wildcards):
     - Raw matrix from sample sheet otherwise
     """
     if USE_SOUPX:
-        return os.path.join(SOUPX_DIR, f"{wildcards.sample}.h5ad")
+        return os.path.join(SOUPX_DIR, "files", f"{wildcards.sample}.h5ad")
     return sample_h5(wildcards)
 
 
@@ -58,8 +58,8 @@ def clustering_input(wildcards):
     - Merged object otherwise
     """
     if config["clustering"]["use_harmony"]:
-        return os.path.join(HARMONY_DIR, "sc.h5ad")
-    return os.path.join(FACS_DIR, "sc.h5ad")
+        return os.path.join(HARMONY_DIR, "files", "sc.h5ad")
+    return os.path.join(FACS_DIR, "files", "sc.h5ad")
 
 
 # Include rules
@@ -80,26 +80,26 @@ include: "rules/11_celltypist.smk"
 rule all:
     input:
         # Per-sample pre-filtering QC
-        expand(os.path.join(QC_PRE_DIR, "pre_{sample}_qc.html"),             sample=SAMPLES),
-        expand(os.path.join(QC_PRE_DIR, "pre_{sample}_cell_qc_metrics.csv"), sample=SAMPLES),
+        expand(os.path.join(QC_PRE_DIR, "files", "pre_{sample}_qc.html"),             sample=SAMPLES),
+        expand(os.path.join(QC_PRE_DIR, "files", "pre_{sample}_cell_qc_metrics.csv"), sample=SAMPLES),
         # Cohort pre-filtering report
-        os.path.join(MULTIQC_PRE_DIR, "pre_cohort_qc_report.html"),
-        os.path.join(MULTIQC_PRE_DIR, "pre_cohort_qc_metrics.csv"),
+        os.path.join(MULTIQC_PRE_DIR, "files", "pre_cohort_qc_report.html"),
+        os.path.join(MULTIQC_PRE_DIR, "files", "pre_cohort_qc_metrics.csv"),
         # Filtered data
-        expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"),             sample=SAMPLES),
+        expand(os.path.join(FILT_DIR, "files", "{sample}_filtered.h5ad"),             sample=SAMPLES),
         # Per-sample post-filtering QC
-        expand(os.path.join(QC_POST_DIR, "post_{sample}_qc.html"),           sample=SAMPLES),
-        expand(os.path.join(QC_POST_DIR, "post_{sample}_cell_qc_metrics.csv"),sample=SAMPLES),
+        expand(os.path.join(QC_POST_DIR, "files", "post_{sample}_qc.html"),           sample=SAMPLES),
+        expand(os.path.join(QC_POST_DIR, "files", "post_{sample}_cell_qc_metrics.csv"),sample=SAMPLES),
         # Cohort post-filtering report
-        os.path.join(MULTIQC_POST_DIR, "post_cohort_qc_report.html"),
-        os.path.join(MULTIQC_POST_DIR, "post_cohort_qc_metrics.csv"),
+        os.path.join(MULTIQC_POST_DIR, "files", "post_cohort_qc_report.html"),
+        os.path.join(MULTIQC_POST_DIR, "files", "post_cohort_qc_metrics.csv"),
         # SoupX (only produced when use_soupx: true)
-        expand(os.path.join(SOUPX_DIR, "{sample}.h5ad"),                 sample=SAMPLES),
+        expand(os.path.join(SOUPX_DIR, "files", "{sample}.h5ad"),           sample=SAMPLES),
         # Final merged object
-        os.path.join(MERGE_DIR, "sc.h5ad"),
-        os.path.join(FACS_DIR,"sc.h5ad"),
-        *([os.path.join(HARMONY_DIR, "sc.h5ad"),
-           os.path.join(os.path.dirname(HARMONY_DIR), "figures", "sc_harmony.pdf")] if RUN_HARMONY else []),
+        os.path.join(MERGE_DIR, "files", "sc.h5ad"),
+        os.path.join(FACS_DIR, "files", "sc.h5ad"),
+        *([os.path.join(HARMONY_DIR, "files", "sc.h5ad"),
+           os.path.join(HARMONY_DIR, "figures", "sc_harmony.pdf")] if RUN_HARMONY else []),
         os.path.join(CLUSTERING_DIR, "files", "sc.h5ad"),
-        os.path.join(CELLTYPIST_DIR, "sc.h5ad"),
-        os.path.join(FACS_DIR,"sc.h5ad")
+        os.path.join(CELLTYPIST_DIR, "files", "sc.h5ad"),
+        os.path.join(FACS_DIR, "files", "sc.h5ad")

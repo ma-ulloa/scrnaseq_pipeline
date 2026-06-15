@@ -14,9 +14,9 @@ rule qc_report_pre:
         samples = config["input"]["samples"],
         cfg      = "config/config.yaml",
     output:
-        html = os.path.join(QC_PRE_DIR, "pre_{sample}_qc.html"),
-        pdf  = os.path.join(QC_PRE_DIR, "pre_{sample}_qc.pdf"),
-        csv  = os.path.join(QC_PRE_DIR, "pre_{sample}_cell_qc_metrics.csv"),
+        html = os.path.join(QC_PRE_DIR, "files", "pre_{sample}_qc.html"),
+        pdf  = os.path.join(QC_PRE_DIR, "files", "pre_{sample}_qc.pdf"),
+        csv  = os.path.join(QC_PRE_DIR, "files", "pre_{sample}_cell_qc_metrics.csv"),
     params:
         sample_id = "{sample}",
     conda:

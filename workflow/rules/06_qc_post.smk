@@ -6,13 +6,13 @@
 # ============================================================
 rule qc_report_post:
     input:
-        h5ad     = os.path.join(FILT_DIR, "{sample}_filtered.h5ad"),
+        h5ad     = os.path.join(FILT_DIR, "files", "{sample}_filtered.h5ad"),
         samples = config["input"]["samples"],
         cfg      = "config/config.yaml",
     output:
-        html = os.path.join(QC_POST_DIR, "post_{sample}_qc.html"),
-        pdf  = os.path.join(QC_POST_DIR, "post_{sample}_qc.pdf"),
-        csv  = os.path.join(QC_POST_DIR, "post_{sample}_cell_qc_metrics.csv"),
+        html = os.path.join(QC_POST_DIR, "files", "post_{sample}_qc.html"),
+        pdf  = os.path.join(QC_POST_DIR, "files", "post_{sample}_qc.pdf"),
+        csv  = os.path.join(QC_POST_DIR, "files", "post_{sample}_cell_qc_metrics.csv"),
     params:
         sample_id = "{sample}",
     conda:

@@ -11,7 +11,7 @@ rule celltypist:
     input:
         h5ad = os.path.join(CLUSTERING_DIR, "files", "sc.h5ad")
     output:
-        h5ad = os.path.join(CELLTYPIST_DIR, "sc.h5ad")
+        h5ad = os.path.join(CELLTYPIST_DIR, "files", "sc.h5ad")
     params:
         model      = CELLTYPIST_MODEL,
         leiden_key = config["celltypist"].get("leiden_key") or "",

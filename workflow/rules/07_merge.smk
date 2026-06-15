@@ -8,9 +8,9 @@
 
 rule merge_adatas:
     input:
-        h5ads = expand(os.path.join(FILT_DIR, "{sample}_filtered.h5ad"),sample=SAMPLES)
+        h5ads = expand(os.path.join(FILT_DIR, "files", "{sample}_filtered.h5ad"),sample=SAMPLES)
     output:
-        h5ad = os.path.join(MERGE_DIR, "sc.h5ad")
+        h5ad = os.path.join(MERGE_DIR, "files", "sc.h5ad")
     params:
         join = config["merge"]["join"]
     conda:

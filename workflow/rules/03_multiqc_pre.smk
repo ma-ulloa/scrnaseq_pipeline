@@ -1,13 +1,13 @@
 rule multiqc_pre:
     input:
-        csvs     = expand(os.path.join(QC_PRE_DIR, "pre_{sample}_cell_qc_metrics.csv"),
+        csvs     = expand(os.path.join(QC_PRE_DIR, "files", "pre_{sample}_cell_qc_metrics.csv"),
                           sample=SAMPLES),
         samples  = config["input"]["samples"],
     output:
-        csv      = os.path.join(MULTIQC_PRE_DIR, "pre_cohort_qc_metrics.csv"),
-        html     = os.path.join(MULTIQC_PRE_DIR, "pre_cohort_qc_report.html"),
-        pdf      = os.path.join(MULTIQC_PRE_DIR, "pre_cohort_qc_report.pdf"),
-        plot_dir = directory(os.path.join(os.path.dirname(MULTIQC_PRE_DIR), "figures")),
+        csv      = os.path.join(MULTIQC_PRE_DIR, "files", "pre_cohort_qc_metrics.csv"),
+        html     = os.path.join(MULTIQC_PRE_DIR, "files", "pre_cohort_qc_report.html"),
+        pdf      = os.path.join(MULTIQC_PRE_DIR, "files", "pre_cohort_qc_report.pdf"),
+        plot_dir = directory(os.path.join(MULTIQC_PRE_DIR, "figures")),
     params:
         color_by = lambda wc: " ".join(config["qc_plots"]["color_by"]),
     conda:

@@ -11,17 +11,17 @@ input:
 
 #  OUTPUT
 output:
-  soupx_dir:          "results/01_soupx/files"
-  qc_pre_dir:         "results/02_qc_pre/files"
-  multiqc_pre_dir:    "results/03_multiqc_pre/files"
-  multiqc_post_dir:   "results/04_multiqc_post/files"
-  filtered_dir:       "results/05_filtering/files"
-  qc_post_dir:        "results/06_qc_post/files"
-  merge_dir:          "results/07_merge/files"
-  facs_dir:           "results/08_remove_facs_contamination/files"
-  harmony_dir:        "results/09_harmony/files"
-  clustering_dir:     "results/10_clustering/files"
-  celltypist_dir:     "results/11_celltypist/files"
+  soupx_dir:          "results/01_soupx"
+  qc_pre_dir:         "results/02_qc_pre"
+  multiqc_pre_dir:    "results/03_multiqc_pre"
+  multiqc_post_dir:   "results/04_multiqc_post"
+  filtered_dir:       "results/05_filtering"
+  qc_post_dir:        "results/06_qc_post"
+  merge_dir:          "results/07_merge"
+  facs_dir:           "results/08_remove_facs_contamination"
+  harmony_dir:        "results/09_harmony"
+  clustering_dir:     "results/10_clustering"
+  celltypist_dir:     "results/11_celltypist"
 
 # QC report plot settings
 qc_plots:

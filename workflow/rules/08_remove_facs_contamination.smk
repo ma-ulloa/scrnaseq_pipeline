@@ -8,9 +8,9 @@
 
 rule remove_facs_contamination:
     input:
-        h5ad = os.path.join(MERGE_DIR, "sc.h5ad")
+        h5ad = os.path.join(MERGE_DIR, "files", "sc.h5ad")
     output:
-        h5ad = os.path.join(FACS_DIR, "sc.h5ad")
+        h5ad = os.path.join(FACS_DIR, "files", "sc.h5ad")
     params:
         species         = config["species"],
         non_sorted_flag = config["non_sorted_flag"],

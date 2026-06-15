@@ -19,7 +19,7 @@ rule soupx:
         soupgenes = config["soupx"]["soupgenes"],
         samples  = config["input"]["samples"]
     output:
-        h5ad = os.path.join(SOUPX_DIR, "{sample}.h5ad"),
+        h5ad = os.path.join(SOUPX_DIR, "files", "{sample}.h5ad"),
     params:
         sample_id          = "{sample}",
         apply_to_fractions = lambda wc: " ".join(config["soupx"]["apply_to_fractions"]),
