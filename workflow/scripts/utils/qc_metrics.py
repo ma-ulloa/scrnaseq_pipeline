@@ -76,12 +76,25 @@ def compute_qc_metrics(adata: sc.AnnData, species: str) -> sc.AnnData:
     n_ribo = adata.var["ribo"].sum()
     print(f"[INFO] MT genes: {n_mt} | Ribo genes: {n_ribo}")
     if n_mt == 0:
-        print("[WARN] No mitochondrial genes detected — check gene naming convention.")
+        print("[WARN] No mitochondrial genes detected — MT genes may have been removed during filtering.")
+
+    # If MT genes were removed upstream, pct_counts_mt in .obs already holds the
+    # correct pre-removal values. calculate_qc_metrics would overwrite them with 0,
+    # so we save and restore them.
+    saved_mt = (
+        adata.obs["pct_counts_mt"].copy()
+        if n_mt == 0 and "pct_counts_mt" in adata.obs.columns
+        else None
+    )
 
     sc.pp.calculate_qc_metrics(
         adata, qc_vars=["mt", "ribo"],
         percent_top=None, log1p=True, inplace=True,
     )
+
+    if saved_mt is not None:
+        adata.obs["pct_counts_mt"] = saved_mt.values
+
     print(f"[INFO] QC metrics computed. Cells: {adata.n_obs} | Genes: {adata.n_vars}")
     return adata
 
