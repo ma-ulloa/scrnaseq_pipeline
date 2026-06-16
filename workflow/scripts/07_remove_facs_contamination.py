@@ -139,26 +139,29 @@ def main():
     # Non-sorted cells are always kept regardless of cluster composition.
     sorted_mask = adata.obs["fraction"] != args.non_sorted_flag
 
-    # Crosstab computed only on sorted cells to find the dominant fraction per cluster
-    crosstab = pd.crosstab(
-        adata.obs.loc[sorted_mask, "leiden_contam"],
-        adata.obs.loc[sorted_mask, "fraction"],
-    )
-    crosstab.to_csv(os.path.join(FILES, "cluster_fraction_table.csv"))
-    print(crosstab)
+    if not sorted_mask.any():
+        print("[INFO] No FACS-sorted cells found — skipping minority-fraction removal")
+    else:
+        # Crosstab computed only on sorted cells to find the dominant fraction per cluster
+        crosstab = pd.crosstab(
+            adata.obs.loc[sorted_mask, "leiden_contam"],
+            adata.obs.loc[sorted_mask, "fraction"],
+        )
+        crosstab.to_csv(os.path.join(FILES, "cluster_fraction_table.csv"))
+        print(crosstab)
 
-    dominant     = crosstab.idxmax(axis=1)                         # cluster → dominant fraction
-    cell_dominant = adata.obs["leiden_contam"].map(dominant)       # NaN for clusters with no sorted cells
+        dominant      = crosstab.idxmax(axis=1)                    # cluster → dominant fraction
+        cell_dominant = adata.obs["leiden_contam"].map(dominant)   # NaN for clusters with no sorted cells
 
-    # Minority = sorted cell whose fraction differs from its cluster's dominant
-    is_minority = (
-        sorted_mask &
-        cell_dominant.notna() &
-        (adata.obs["fraction"] != cell_dominant)
-    )
-    print(f"[INFO] Removing {is_minority.sum():,} minority-fraction cells")
-    adata = adata[~is_minority].copy()
-    print(f"[INFO] Retained: {adata.n_obs:,} cells")
+        # Minority = sorted cell whose fraction differs from its cluster's dominant
+        is_minority = (
+            sorted_mask &
+            cell_dominant.notna() &
+            (adata.obs["fraction"] != cell_dominant)
+        )
+        print(f"[INFO] Removing {is_minority.sum():,} minority-fraction cells")
+        adata = adata[~is_minority].copy()
+        print(f"[INFO] Retained: {adata.n_obs:,} cells")
 
     # ── Save ───────────────────────────────────────────────────────────────
     adata.write_h5ad(args.output)
